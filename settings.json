@@ -1,0 +1,63 @@
+{
+  "wait4AudioDevice": "Devialet",
+  "wait4AudioDeviceSeconds": 5,
+  "devialetSource": "iTunes",
+  "devialetOtherSourceDevice": "Monitor",
+  "playlists": {
+    "pl_160007389_2062727269": {
+      "mode": 1,
+      "sortOrder": 1
+    },
+    "pl_160007386_2062727269": {
+      "mode": 1,
+      "sortOrder": 0
+    },
+    "pl_160007385_2062727269": {
+      "mode": 1
+    },
+    "pl_160007388_2062727269": {
+      "sortOrder": 1,
+      "mode": 1
+    },
+    "pl_804887223_-82048499": {
+      "sortOrder": 1,
+      "mode": 1
+    },
+    "pl_2120102323_447967980": {
+      "sortOrder": 1,
+      "mode": 0
+    },
+    "pl_160007394_2062727269": {
+      "mode": 1
+    },
+    "pl_1158812936_434558453": {
+      "mode": 1,
+      "sortOrder": 1
+    },
+    "pl_-1317431692_-230908299": {
+      "mode": 1
+    },
+    "pl_-570423326_-809966844": {
+      "sortOrder": 0,
+      "mode": 0
+    },
+    "pl_960655121_-1395801479": {
+      "sortOrder": 0
+    },
+    "pl_1765555595_-996696347": {
+      "sortOrder": 1
+    },
+    "pl_-2017478395_1758756104": {
+      "sortOrder": 0
+    },
+    "pl_56121470_432271243": {
+      "mode": 1
+    },
+    "pl_-1160066149_120322705": {
+      "mode": 1
+    },
+    "pl_1898718998_268868507": {
+      "mode": 1
+    }
+  }
+}

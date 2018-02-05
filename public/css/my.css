@@ -1,0 +1,169 @@
+.tdTrackNumber {
+  color:#555;
+  font-size:50px;
+  font-weight:bold;
+  text-align:right;
+  width:70px;
+  padding-left:25px;
+  height:160px;
+  border-bottom:4px solid #DDD;
+}
+
+.tdTrackInfo {
+  color:#888;
+  font-size:40px;
+  padding-left:50px;
+  padding-right:50px;
+  padding-top:10px;
+  padding-bottom:20px;
+  border-bottom:4px solid #DDD;
+}
+
+.inputSearch {
+  width: 100%;
+  font-size:60px;
+  border:0px;
+}
+
+.trTrack {
+  background:#FFF;
+}
+
+.tdTrackName {
+  color:#000;
+  font-size:50px;
+}
+
+.tdTrackTime {
+  color:#555;
+  font-size:45px;
+  font-weight:normal;
+  text-align:right;
+  width:50px;
+  padding-right:25px;
+  height:160px;
+  border-bottom:4px solid #DDD;
+}
+
+.tdTrackAlbum {
+  color:#000;
+}
+
+@media (orientation: portrait) 
+  {
+  .darkBackground {
+    background:#000;
+  }
+  
+  .pageWidth {
+    width:100vw;
+  }
+  
+  .vertOnly {
+  }
+  
+  .landscapeOnly {
+    display:none;
+  }
+  
+  .track_title {
+    font-size: 50px;
+  }
+  
+  .artist_album_title {
+    font-size: 40px;
+  }
+  
+  .player_position_time {
+    font-size:40px;
+  }
+  
+  .divPlayerPage {
+    position:absolute;
+    background:#000;
+  }
+  
+  .imgArtwork {
+    top:170px;
+  }
+  
+  .player_pos_left {
+    width:150px;
+  }
+  
+  .player_pos_right {
+    width:160px;
+  }
+  
+  .dark_background {
+    background-color:rgba(0,0,0,.5);
+  }
+  
+  .trPlayerPosition {
+    height:100px;
+  }
+  
+  .progressBar {
+    height:30px;
+  }
+}
+
+
+@media (orientation: landscape) 
+  {
+  .darkBackground {
+    background-image: url(/img/background.jpg);
+  }
+  
+  .pageWidth {
+    width:700px;
+  }
+    
+  .vertOnly {
+    display:none;
+  }
+  
+  .landscapeOnly {
+  }
+  
+  .track_title {
+    font-size: 35px;
+  }
+ 
+  .artist_album_title {
+    font-size: 30px;
+  }
+  
+  .player_position_time {
+    font-size:30px;
+  }
+  
+  .divPlayerPage {
+    left:50vw;
+    margin-left: -350px;
+  }
+  
+  .imgArtwork {
+    top:130px;
+    -webkit-filter: grayscale(25%);
+  }
+  
+  .player_pos_left {
+    width:100px;
+  }
+  
+  .player_pos_right {
+    width:110px;
+  }
+  
+  .dark_background {
+  }
+  
+  .trPlayerPosition {
+    height:80px;
+  }
+  
+  .progressBar {
+    height:20px;
+  }
+}

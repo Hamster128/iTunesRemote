@@ -1,0 +1,205 @@
+https://learn-powershell.net/2013/12/19/exploring-itunes-using-powershell-part-1/
+https://learn-powershell.net/2014/11/08/exploring-itunes-using-powershell-part-2-the-equalizer/
+https://learn-powershell.net/2014/11/18/exploring-itunes-using-powershell-part-3-connected-devices/
+
+PowerShell
+
+$itunes = New-Object  -ComObject iTunes.Application
+$itunes | Get-member
+
+Name                               MemberType            Definition                                                
+----                               ----------            ----------                                                
+Authorize                          Method                void Authorize (int, Variant, string)                     
+BackTrack                          Method                void BackTrack ()                                         
+CheckVersion                       Method                bool CheckVersion (int, int)                              
+ConvertFile                        Method                IITOperationStatus ConvertFile (string)                   
+ConvertFile2                       Method                IITConvertOperationStatus ConvertFile2 (string)           
+ConvertFiles                       Method                IITOperationStatus ConvertFiles (Variant)                 
+ConvertFiles2                      Method                IITConvertOperationStatus ConvertFiles2 (Variant)         
+ConvertTrack                       Method                IITOperationStatus ConvertTrack (Variant)                 
+ConvertTrack2                      Method                IITConvertOperationStatus ConvertTrack2 (Variant)         
+ConvertTracks                      Method                IITOperationStatus ConvertTracks (Variant)                
+ConvertTracks2                     Method                IITConvertOperationStatus ConvertTracks2 (Variant)        
+CreateEQPreset                     Method                IITEQPreset CreateEQPreset (string)                       
+CreateFolder                       Method                IITPlaylist CreateFolder (string)                         
+CreateFolderInSource               Method                IITPlaylist CreateFolderInSource (string, Variant)        
+CreatePlaylist                     Method                IITPlaylist CreatePlaylist (string)                       
+CreatePlaylistInSource             Method                IITPlaylist CreatePlaylistInSource (string, Variant)      
+FastForward                        Method                void FastForward ()                                       
+GetITObjectByID                    Method                IITObject GetITObjectByID (int, int, int, int)            
+GetITObjectPersistentIDs           Method                void GetITObjectPersistentIDs (Variant, int, int)         
+GetPlayerButtonsState              Method                void GetPlayerButtonsState (bool, ITPlayButtonState, bool)
+GotoMusicStoreHomePage             Method                void GotoMusicStoreHomePage ()                            
+NextTrack                          Method                void NextTrack ()                                         
+OpenURL                            Method                void OpenURL (string)                                     
+Pause                              Method                void Pause ()                                             
+Play                               Method                void Play ()                                              
+PlayerButtonClicked                Method                void PlayerButtonClicked (ITPlayerButton, int)            
+PlayFile                           Method                void PlayFile (string)                                    
+PlayPause                          Method                void PlayPause ()                                         
+PreviousTrack                      Method                void PreviousTrack ()                                     
+Quit                               Method                void Quit ()                                              
+Resume                             Method                void Resume ()                                            
+Rewind                             Method                void Rewind ()                                            
+SetOptions                         Method                void SetOptions (int)                                     
+Stop                               Method                void Stop ()                                              
+SubscribeToPodcast                 Method                void SubscribeToPodcast (string)                          
+UpdateIPod                         Method                void UpdateIPod ()                                        
+UpdatePodcastFeeds                 Method                void UpdatePodcastFeeds ()                                
+CanSetShuffle                      ParameterizedProperty bool CanSetShuffle (Variant) {get}                        
+CanSetSongRepeat                   ParameterizedProperty bool CanSetSongRepeat (Variant) {get}                     
+ITObjectPersistentIDHigh           ParameterizedProperty int ITObjectPersistentIDHigh (Variant) {get}              
+ITObjectPersistentIDLow            ParameterizedProperty int ITObjectPersistentIDLow (Variant) {get}               
+AppCommandMessageProcessingEnabled Property              bool AppCommandMessageProcessingEnabled () {get} {set}    
+BrowserWindow                      Property              IITBrowserWindow BrowserWindow () {get}                   
+ConvertOperationStatus             Property              IITConvertOperationStatus ConvertOperationStatus () {get} 
+CurrentEncoder                     Property              IITEncoder CurrentEncoder () {get} {set}                  
+CurrentEQPreset                    Property              IITEQPreset CurrentEQPreset () {get} {set}                
+CurrentPlaylist                    Property              IITPlaylist CurrentPlaylist () {get}                      
+CurrentStreamTitle                 Property              string CurrentStreamTitle () {get}                        
+CurrentStreamURL                   Property              string CurrentStreamURL () {get}                          
+CurrentTrack                       Property              IITTrack CurrentTrack () {get}                            
+CurrentVisual                      Property              IITVisual CurrentVisual () {get} {set}                    
+Encoders                           Property              IITEncoderCollection Encoders () {get}                    
+EQEnabled                          Property              bool EQEnabled () {get} {set}                             
+EQPresets                          Property              IITEQPresetCollection EQPresets () {get}                  
+EQWindow                           Property              IITWindow EQWindow () {get}                               
+ForceToForegroundOnDialog          Property              bool ForceToForegroundOnDialog () {get} {set}             
+FullScreenVisuals                  Property              bool FullScreenVisuals () {get} {set}                     
+LibraryPlaylist                    Property              IITLibraryPlaylist LibraryPlaylist () {get}               
+LibrarySource                      Property              IITSource LibrarySource () {get}                          
+LibraryXMLPath                     Property              string LibraryXMLPath () {get}                            
+Mute                               Property              bool Mute () {get} {set}                                  
+PlayerPosition                     Property              int PlayerPosition () {get} {set}                         
+PlayerState                        Property              ITPlayerState PlayerState () {get}                        
+SelectedTracks                     Property              IITTrackCollection SelectedTracks () {get}                
+SoundVolume                        Property              int SoundVolume () {get} {set}                            
+SoundVolumeControlEnabled          Property              bool SoundVolumeControlEnabled () {get}                   
+Sources                            Property              IITSourceCollection Sources () {get}                      
+Version                            Property              string Version () {get}                                   
+Visuals                            Property              IITVisualCollection Visuals () {get}                      
+VisualsEnabled                     Property              bool VisualsEnabled () {get} {set}                        
+VisualSize                         Property              ITVisualSize VisualSize () {get} {set}                    
+Windows                            Property              IITWindowCollection Windows () {get}         
+
+
+$itunes.CurrentPlaylist | Get-member
+
+Name            MemberType Definition                                               
+----            ---------- ----------                                               
+AddFile         Method     IITOperationStatus AddFile (string)                      
+AddFiles        Method     IITOperationStatus AddFiles (Variant)                    
+AddTrack        Method     IITTrack AddTrack (Variant)                              
+AddURL          Method     IITURLTrack AddURL (string)                              
+CreateFolder    Method     IITPlaylist CreateFolder (string)                        
+CreatePlaylist  Method     IITPlaylist CreatePlaylist (string)                      
+Delete          Method     void Delete ()                                           
+GetITObjectIDs  Method     void GetITObjectIDs (int, int, int, int)                 
+PlayFirstTrack  Method     void PlayFirstTrack ()                                   
+Print           Method     void Print (bool, ITPlaylistPrintKind, string)           
+Reveal          Method     void Reveal ()                                           
+Search          Method     IITTrackCollection Search (string, ITPlaylistSearchField)
+Duration        Property   int Duration () {get}                                    
+Index           Property   int Index () {get}                                       
+Kind            Property   ITPlaylistKind Kind () {get}                             
+Name            Property   string Name () {get} {set}                               
+Parent          Property   IITUserPlaylist Parent () {get} {set}                    
+playlistID      Property   int playlistID () {get}                                  
+Shared          Property   bool Shared () {get} {set}                               
+Shuffle         Property   bool Shuffle () {get} {set}                              
+Size            Property   double Size () {get}                                     
+Smart           Property   bool Smart () {get}                                      
+SongRepeat      Property   ITPlaylistRepeatMode SongRepeat () {get} {set}           
+Source          Property   IITSource Source () {get}                                
+sourceID        Property   int sourceID () {get}                                    
+SpecialKind     Property   ITUserPlaylistSpecialKind SpecialKind () {get}           
+Time            Property   string Time () {get}                                     
+TrackDatabaseID Property   int TrackDatabaseID () {get}                             
+trackID         Property   int trackID () {get}                                     
+Tracks          Property   IITTrackCollection Tracks () {get}                       
+Visible         Property   bool Visible () {get}  
+
+$itunes.CurrentPlaylist.Tracks | Get-member
+
+Name               MemberType Definition                               
+----               ---------- ----------                               
+AddArtworkFromFile Method     IITArtwork AddArtworkFromFile (string)   
+Delete             Method     void Delete ()                           
+GetITObjectIDs     Method     void GetITObjectIDs (int, int, int, int) 
+Play               Method     void Play ()                             
+Reveal             Method     void Reveal ()                           
+UpdateInfoFromFile Method     void UpdateInfoFromFile ()               
+UpdatePodcastFeed  Method     void UpdatePodcastFeed ()                
+Album              Property   string Album () {get} {set}              
+AlbumArtist        Property   string AlbumArtist () {get} {set}        
+AlbumRating        Property   int AlbumRating () {get} {set}           
+AlbumRatingKind    Property   ITRatingKind AlbumRatingKind () {get}    
+Artist             Property   string Artist () {get} {set}             
+Artwork            Property   IITArtworkCollection Artwork () {get}    
+BitRate            Property   int BitRate () {get}                     
+BookmarkTime       Property   int BookmarkTime () {get} {set}          
+BPM                Property   int BPM () {get} {set}                   
+Category           Property   string Category () {get} {set}           
+Comment            Property   string Comment () {get} {set}            
+Compilation        Property   bool Compilation () {get} {set}          
+Composer           Property   string Composer () {get} {set}           
+DateAdded          Property   Date DateAdded () {get}                  
+Description        Property   string Description () {get} {set}        
+DiscCount          Property   int DiscCount () {get} {set}             
+DiscNumber         Property   int DiscNumber () {get} {set}            
+Duration           Property   int Duration () {get}                    
+Enabled            Property   bool Enabled () {get} {set}              
+EpisodeID          Property   string EpisodeID () {get} {set}          
+EpisodeNumber      Property   int EpisodeNumber () {get} {set}         
+EQ                 Property   string EQ () {get} {set}                 
+ExcludeFromShuffle Property   bool ExcludeFromShuffle () {get} {set}   
+Finish             Property   int Finish () {get} {set}                
+Genre              Property   string Genre () {get} {set}              
+Grouping           Property   string Grouping () {get} {set}           
+Index              Property   int Index () {get}                       
+Kind               Property   ITTrackKind Kind () {get}                
+KindAsString       Property   string KindAsString () {get}             
+Location           Property   string Location () {get} {set}           
+LongDescription    Property   string LongDescription () {get} {set}    
+Lyrics             Property   string Lyrics () {get} {set}             
+ModificationDate   Property   Date ModificationDate () {get}           
+Name               Property   string Name () {get} {set}               
+PartOfGaplessAlbum Property   bool PartOfGaplessAlbum () {get} {set}   
+PlayedCount        Property   int PlayedCount () {get} {set}           
+PlayedDate         Property   Date PlayedDate () {get} {set}           
+Playlist           Property   IITPlaylist Playlist () {get}            
+playlistID         Property   int playlistID () {get}                  
+Playlists          Property   IITPlaylistCollection Playlists () {get} 
+PlayOrderIndex     Property   int PlayOrderIndex () {get}              
+Podcast            Property   bool Podcast () {get}                    
+Rating             Property   int Rating () {get} {set}                
+ratingKind         Property   ITRatingKind ratingKind () {get}         
+ReleaseDate        Property   Date ReleaseDate () {get}                
+RememberBookmark   Property   bool RememberBookmark () {get} {set}     
+SampleRate         Property   int SampleRate () {get}                  
+SeasonNumber       Property   int SeasonNumber () {get} {set}          
+Show               Property   string Show () {get} {set}               
+Size               Property   int Size () {get}                        
+Size64High         Property   int Size64High () {get}                  
+Size64Low          Property   int Size64Low () {get}                   
+SkippedCount       Property   int SkippedCount () {get} {set}          
+SkippedDate        Property   Date SkippedDate () {get} {set}          
+SortAlbum          Property   string SortAlbum () {get} {set}          
+SortAlbumArtist    Property   string SortAlbumArtist () {get} {set}    
+SortArtist         Property   string SortArtist () {get} {set}         
+SortComposer       Property   string SortComposer () {get} {set}       
+SortName           Property   string SortName () {get} {set}           
+SortShow           Property   string SortShow () {get} {set}           
+sourceID           Property   int sourceID () {get}                    
+Start              Property   int Start () {get} {set}                 
+Time               Property   string Time () {get}                     
+TrackCount         Property   int TrackCount () {get} {set}            
+TrackDatabaseID    Property   int TrackDatabaseID () {get}             
+trackID            Property   int trackID () {get}                     
+TrackNumber        Property   int TrackNumber () {get} {set}           
+Unplayed           Property   bool Unplayed () {get} {set}             
+VideoKind          Property   ITVideoKind VideoKind () {get} {set}     
+VolumeAdjustment   Property   int VolumeAdjustment () {get} {set}      
+Year               Property   int Year () {get} {set}                  
+
+@($itunes.CurrentPlaylist.Tracks)[1] | Get-member
