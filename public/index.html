@@ -86,7 +86,12 @@
         $('#tdAt').html(formatTime(position));
         
         if(track.name) {
-          $('#tdLeft').html('-'+formatTime(track.duration - position));
+          var left = track.duration - position;
+          
+          if(left < 0)
+            left = 0;
+            
+          $('#tdLeft').html('-'+formatTime(left));
           $('#divTime').css('width', (position / track.duration * 100)+'%');
         }
       }
@@ -296,8 +301,12 @@
         }
                 
         $('#track').html(msg.name);
-        $('#album').html(msg.album);        
-        $('#artist').html(msg.artist);
+        
+        if(track.kind != 3)
+          $('#album_artist').html(msg.artist + ' - ' + msg.album);
+        else
+          $('#album_artist').html(msg.album);
+        
         $('#artwork').attr('src', 'img/current.png?unique='+(++unique));
         $('#artwork_album').attr('src', 'img/current.png?unique='+unique);
         $('#albumName').html(msg.album);        
@@ -857,13 +866,13 @@
             for(r=0; r<tr.rating; r+=20)
               rating+='&#x2605';
             
-            if(playlist.mode) {
+            if(playlist.mode) {   // list by album
               var artist = tr.artist;
               
               if(tr.compilation)
                 artist = 'Various';
             
-              var $tr = $('<tr class="trTrack" style="border-bottom:4px solid #000;"><td class="tdTrackNumber"><img style="width:200px;" src="thumbs/cover~'+tr.id_low+'~'+tr.id_high+'~'+tr.name+'~'+tr.artist+'~'+tr.compilation+'~'+tr.trackCount+'~.png"></td><td class="tdTrackInfo" colspan=2><span class="tdTrackName">'+tr.name+'</span><br><span class="tdTrackAlbum">'+artist+' '+tr.year+'</span> '+rating+'</td></tr>');
+              var $tr = $('<tr class="trTrack" style="border-bottom:4px solid #000;"><td class="tdTrackNumber"><img style="width:200px;" src="thumbs/cover~'+tr.id_low+'~'+tr.id_high+'~'+tr.name+'~'+tr.artist+'~'+tr.compilation+'~'+tr.trackCount+'~0~.png"></td><td class="tdTrackInfo" colspan=2><span class="tdTrackName">'+tr.name+'</span><br><span class="tdTrackAlbum">'+artist+' '+tr.year+'</span> '+rating+'</td></tr>');
               
               (function() {
                 var al_ = tr;
@@ -873,10 +882,13 @@
               })();
               
               $table.append($tr);
-            } else {
+            } else {              // list by track
               var duration = formatTime(tr.duration);
               
-              $table.append('<tr class="trTrack" style="border-bottom:4px solid #000;" onClick="onPlaylistTrack('+playlist.loaded+')"><td class="tdTrackNumber"><img style="width:200px;" src="thumbs/cover~'+tr.id_low+'~'+tr.id_high+'~'+tr.album+'~'+tr.artist+'~'+tr.compilation+'~'+tr.trackCount+'~.png"></td><td class="tdTrackInfo"><span class="tdTrackName">'+tr.name+'</span><br><span class="tdTrackAlbum">'+tr.album+' - '+tr.artist+'</span><br>'+duration+' '+rating+'</td><td class="tdTrackInfo"><div class="divAlbumTrackPlay_'+tr.id_low+'_'+tr.id_high+'"><img src="img/playing.png"></div></td></tr>');
+              if(tr.kind == 3)  // radio
+                $table.append('<tr class="trTrack" style="border-bottom:4px solid #000;" onClick="onPlaylistTrack('+playlist.loaded+')"><td class="tdTrackNumber"><img style="width:200px;" src="thumbs/cover~'+tr.id_low+'~'+tr.id_high+'~'+ tr.name + '~no_artist~false~0~'+tr.kind+'~.png"></td><td class="tdTrackInfo"><span class="tdTrackName">'+tr.name+'</span><br>'+rating+'</td><td class="tdTrackInfo"><div class="divAlbumTrackPlay_'+tr.id_low+'_'+tr.id_high+'"><img src="img/playing.png"></div></td></tr>');
+              else
+                $table.append('<tr class="trTrack" style="border-bottom:4px solid #000;" onClick="onPlaylistTrack('+playlist.loaded+')"><td class="tdTrackNumber"><img style="width:200px;" src="thumbs/cover~'+tr.id_low+'~'+tr.id_high+'~'+ tr.album +'~'+tr.artist+'~'+tr.compilation+'~'+tr.trackCount+'~'+tr.kind+'~.png"></td><td class="tdTrackInfo"><span class="tdTrackName">'+tr.name+'</span><br><span class="tdTrackAlbum">'+tr.album+' - '+tr.artist+'</span><br>'+duration+' '+rating+'</td><td class="tdTrackInfo"><div class="divAlbumTrackPlay_'+tr.id_low+'_'+tr.id_high+'"><img src="img/playing.png"></div></td></tr>');
             }
             playlist.loaded++;
           }
@@ -1028,7 +1040,7 @@
           for(r=0; r<al.rating; r+=20) 
             rating+='&#x2605';
 
-          var $tr = $('<tr class="trTrack" style="border-bottom:4px solid #000;"><td class="tdTrackNumber"><img style="width:200px;" src="thumbs/cover~'+al.id_low+'~'+al.id_high+'~'+al.name+'~'+al.artist+'~'+al.compilation+'~'+al.trackCount+'~.png"></td><td class="tdTrackInfo"><span class="tdTrackName">'+al.name+'</span><br><span class="tdTrackAlbum">'+al.year+'</span> '+rating+'</td></tr>');                      
+          var $tr = $('<tr class="trTrack" style="border-bottom:4px solid #000;"><td class="tdTrackNumber"><img style="width:200px;" src="thumbs/cover~'+al.id_low+'~'+al.id_high+'~'+al.name+'~'+al.artist+'~'+al.compilation+'~'+al.trackCount+'~0~.png"></td><td class="tdTrackInfo"><span class="tdTrackName">'+al.name+'</span><br><span class="tdTrackAlbum">'+al.year+'</span> '+rating+'</td></tr>');                      
           
           (function() {
             var al_ = al;
@@ -1199,7 +1211,7 @@
        24.0 dB
       </div>
     
-      <div class="pageWidth" style="height:100vh; position:absolute; overflow:hidden; text-align:center;">
+      <div class="artworkWidth" style="height:100vh; position:absolute; overflow:hidden; text-align:center;">
         <img id="artwork" src="img/current.png" class="imgArtwork "style="width:90%; position:relative;">
       </div>
       
@@ -1211,7 +1223,7 @@
                 <td class="vertOnly" style="vertical-align:top; padding-top:30px;" onTouchStart="playerBack(event, true)" onClick="playerBack(event)"><img src="img/back_w.png"></td>
                 <td style="text-align:center; color:#FFF;" onTouchStart="playerBack(event, true)" onClick="playerBack(event)">
                   <span id='track' class="track_title" style="font-weight:bold;"></span><br>
-                  <span id='artist' class="artist_album_title"></span> - <span id='album' class="artist_album_title"></span>
+                  <span id='album_artist' class="artist_album_title"></span>
                 </td>
                 <td class="vertOnly"><img src="img/blank.png"></td>
             </table>
@@ -1219,7 +1231,7 @@
           
           <!-- track info oerlay -->
           <tr><td style="">
-            <div id="divTrackInfo" style="width:100%; height:100%; background:rgba(0,0,0,.7); color:#FFF; opacity:0;" onTouchStart="onTrackInfo(event, true)" onClick="onTrackInfo(event)">
+            <div id="divTrackInfo" class="vertOnly" style="width:100%; height:100%; background:rgba(0,0,0,.7); color:#FFF; opacity:0;" onTouchStart="onTrackInfo(event, true)" onClick="onTrackInfo(event)">
               <table style="width:80%; margin:0 auto; font-size:50px;">
                 <tr style="height:80px;"><td></td></tr>
                 <tr><td id="trackRating" style="text-align:center; font-size:120px;"></td></tr>

@@ -6,6 +6,7 @@ var itunes = require('itunes_api');
 var myip = require('quick-local-ip');
 var fs = require('fs');
 var path = require('path');
+const execFile = require('child_process').execFile;
 const exec = require('child_process').exec;
 const dgram = require('dgram');
 const server = dgram.createSocket('udp4');
@@ -87,9 +88,11 @@ function doNextArtworkQueue() {
       file = path.join(__dirname, 'public/thumbs/cover_'+q.key+'.png');
           
       is.on('end', function() {
-        q.res.sendFile(file, opts, function(err) {
-          artWorkBusy = false;
-          doNextArtworkQueue();
+        execFile('ImageLibC.exe', ['downscale', '256', file], {}, function(err, stdout, stderr) {
+          q.res.sendFile(file, opts, function(err) {
+            artWorkBusy = false;
+            doNextArtworkQueue();
+          });
         });
       });
         
@@ -102,10 +105,29 @@ function doNextArtworkQueue() {
 
 app.get('/thumbs/cover~*', function(req, res){
   var parts = req.url.split('~');
-  
+  var kind = parts[7];
+
+  if(kind == '3') {  // kind == radio
+    var trackName = decodeURI(parts[3]);
+    
+    var file = path.join(__dirname, 'public/thumbs_radio/' + trackName + '.jpg');
+
+    var opts = {
+      headers: {
+        "Cache-Control": "public, max-age=8640000"
+      }
+    };
+
+    if( !fs.existsSync(file) )
+      file = path.join(__dirname, 'public/img/no_radio_icon.jpg');
+
+    res.sendFile(file, opts);
+    return;    
+  }
+      
   var key = parts[3];    // album;
   
-  if(parts[5] != 'true')
+  if(parts[5] != 'true') // compilation
     key += parts[4];     // artist
     
   key += parts[6];       // trackCount
@@ -351,12 +373,13 @@ function setDevialetInfo() {
 
 function systemRequired() {
 //  console.log('SystemRequired');
-  exec('SystemRequired.exe', {}, function(err, stdout, stderr) {
+  execFile('SystemRequired.exe', [], {}, function(err, stdout, stderr) {
 //    console.log('SystemRequired '+err+' '+stdout);
   });
 }
 
 function systemRequiredOff() {
+	console.log('systemRequired off');
   clearInterval(systemRequiredInterval);
   systemRequiredInterval = 0;
   systemRequiredOffTimer = 0;
@@ -364,7 +387,7 @@ function systemRequiredOff() {
 }
 
 function getState() {
-  if(!connections && state.initialized && !state.state) {
+  if(!connections && state.initialized && !systemRequiredInterval) {
     if(getStateTimer)
       getStateTimer = setTimeout(getState, 500);
     return;
@@ -383,11 +406,13 @@ function getState() {
           systemRequiredOffTimer = 0;
         }
           
+				console.log('Playing -> systemRequired on');
         systemRequired();
         systemRequiredInterval = setInterval(systemRequired, 59000);
       }
        
       if(!state.state && systemRequiredInterval && !systemRequiredOffTimer) {
+				console.log('Stopped -> systemRequired off...');
         systemRequiredOffTimer = setTimeout(systemRequiredOff, 300000);
       }
       
@@ -421,20 +446,24 @@ function getState() {
       if(rsp && (rsp.name != track.name || rsp.artist != track.artist || rsp.album != track.album)) {
         track = rsp;
 
-        itunes.currentArtwork(function(resp){
-        
-          if(!getStateTimer)
-            return;
+        if(track.kind == 3) { // radio
+          var is = fs.createReadStream('public/thumbs_radio/' + track.name + '.jpg')
+          
+          is.on('end', function() {
+            io.sockets.emit('track', track);
+          });
             
-          if(!resp.found) {
-            var is = fs.createReadStream('public/img/no_cover.png')
+          is.on('error', function(e) {
+            console.log('public/thumbs_radio/' + track.name + '.jpg '+e);
+            
+            var is = fs.createReadStream('public/img/no_radio_icon.jpg')
             
             is.on('end', function() {
               io.sockets.emit('track', track);
             });
               
             is.on('error', function(e) {
-              console.log('Can`t open public/img/no_cover.png '+e);
+              console.log('Can`t open public/img/no_radio_icon.jpg '+e);
             });
               
             var os = fs.createWriteStream('public/img/current.png');
@@ -444,10 +473,44 @@ function getState() {
             });
                             
             is.pipe(os);
-          }
-          else
-            io.sockets.emit('track', track);
-        });
+          });
+            
+          var os = fs.createWriteStream('public/img/current.png');
+
+          os.on('error', function(e) {
+            console.log('Can`t write public/img/current.png '+e);
+          });
+                          
+          is.pipe(os);
+        } else {
+          itunes.currentArtwork(function(resp){
+          
+            if(!getStateTimer)
+              return;
+              
+            if(!resp.found) {
+              var is = fs.createReadStream('public/img/no_cover.png')
+              
+              is.on('end', function() {
+                io.sockets.emit('track', track);
+              });
+                
+              is.on('error', function(e) {
+                console.log('Can`t open public/img/no_cover.png '+e);
+              });
+                
+              var os = fs.createWriteStream('public/img/current.png');
+  
+              os.on('error', function(e) {
+                console.log('Can`t write public/img/current.png '+e);
+              });
+                              
+              is.pipe(os);
+            }
+            else
+              io.sockets.emit('track', track);
+          });
+        }
         
       }
         
@@ -461,7 +524,8 @@ function getState() {
 function checkAudioDevice() {
   
   // generate a list of all audio devices
-  exec('EndPointController.exe', {}, function(err, stdout, stderr) {
+  execFile('EndPointController.exe', [], {}, function(err, stdout, stderr) {
+  
     var lines = stdout.split('\n');
     var found = -2;
     
@@ -505,8 +569,8 @@ function checkAudioDevice() {
         getStateTimer = 0;
         iTunesEnabled = false;
             
-        exec('nircmdc.exe win close class iTunes', {}, function(err, stdout, stderr) {
-        });
+        // close iTunes
+        execFile('nircmdc.exe', ['win', 'close', 'class', 'iTunes'], {}, function(err, stdout, stderr) {});
 
         state.state = 0;
         io.sockets.emit('state', state);
@@ -527,24 +591,40 @@ function checkAudioDevice() {
         return;
       }
 
-      console.log(settings.wait4AudioDevice+' ready');
+      console.log(settings.wait4AudioDevice+' set as active device...');
     
       // set configured audio device as windows default audio device
-      exec('EndPointController.exe '+found, {}, function(err, stdout, stderr) {
-        state.initialized = false;
-        getStateTimer = 1;
-        getState();
-        iTunesEnabled = true;
+      execFile('EndPointController.exe', [found], {}, function(err, stdout, stderr) {
+      
+        // be sure iTunes is closed now
+        execFile('nircmdc.exe', ['killprocess', 'iTunes.exe'], {}, function(err, stdout, stderr) {});
+      
+        setTimeout(function(){
+          if(audioDeviceState.state < 1)
+            return;
         
-        audioDeviceState.state = 2;
-        io.sockets.emit('deviceState', audioDeviceState);
+          console.log(settings.wait4AudioDevice+' starting iTunes...');
         
-        setTimeout(function() {  // minimize iTunes window after 5sec
-          exec('nircmdc.exe win min class iTunes', {}, function(err, stdout, stderr) {
+          exec('start /min "" "C:\\Program Files\\iTunes\\iTunes.exe"', {windowsHide: true}, function(err, stdout, stderr) {
           });
-        }, 5000);
-        
-        setTimeout(checkAudioDevice, audioDeviceCheckInterval);
+
+          setTimeout(function(){
+            if(audioDeviceState.state < 1)
+              return;
+
+            console.log(settings.wait4AudioDevice+' ready');
+                    
+            state.initialized = false;
+            getStateTimer = 1;
+            getState();
+            iTunesEnabled = true;
+            
+            audioDeviceState.state = 2;
+            io.sockets.emit('deviceState', audioDeviceState);
+            
+            setTimeout(checkAudioDevice, audioDeviceCheckInterval);
+          }, 3000);
+        }, 500);
       });
     
     } else {  // audio Device is currently not present
@@ -582,8 +662,7 @@ function checkAudioDevice() {
             
             if(device == settings.devialetOtherSourceDevice) {
               // set configured audio device as windows default audio device
-              exec('EndPointController.exe '+l, {}, function(err, stdout, stderr) {
-              });
+              execFile('EndPointController.exe', [l], {}, function(err, stdout, stderr) {});
               break;
             }
           }
@@ -609,8 +688,12 @@ function checkAudioDevice() {
 if('wait4AudioDevice' in settings) 
   checkAudioDevice();
 
-getStateTimer = 1;
-getState();
+setTimeout(function() {
+	exec('start /min "" "C:\\Program Files\\iTunes\\iTunes.exe"', {windowsHide: true}, function(err, stdout, stderr) {
+		getStateTimer = 1;
+		getState();
+	});
+}, 5000);	
 
 server.on('error', function(err) {
   console.log('udb server error:\n'+err.stack);
@@ -705,7 +788,7 @@ setInterval(function() {
   lastCheckSleepTime = currentTime;
 }, 500);
 
-// start http server
+// start udp server
 server.on('listening', function() {
   var address = server.address();
 });

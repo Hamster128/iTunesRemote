@@ -2,7 +2,7 @@
   "wait4AudioDevice": "Devialet",
   "wait4AudioDeviceSeconds": 5,
   "devialetSource": "iTunes",
-  "devialetOtherSourceDevice": "Monitor",
+  "devialetOtherSourceDevice": "Headphones",
   "playlists": {
     "pl_160007389_2062727269": {
       "mode": 1,
@@ -57,6 +57,18 @@
       "mode": 1
     },
     "pl_1898718998_268868507": {
+      "mode": 1
+    },
+    "pl_160014631_2062727269": {
+      "mode": 1
+    },
+    "pl_-2109090544_1282657113": {
+      "mode": 1
+    },
+    "pl_-1708540782_-1949826533": {
+      "mode": 1
+    },
+    "pl_-1841834797_429180268": {
       "mode": 1
     }
   }

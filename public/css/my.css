@@ -59,6 +59,10 @@
     width:100vw;
   }
   
+  .artworkWidth {
+    width:100vw;
+  }
+  
   .vertOnly {
   }
   
@@ -116,6 +120,11 @@
   }
   
   .pageWidth {
+    width:900px;
+  }
+    
+  .artworkWidth {
+    left:100px;
     width:700px;
   }
     
@@ -140,7 +149,7 @@
   
   .divPlayerPage {
     left:50vw;
-    margin-left: -350px;
+    margin-left: -450px;
   }
   
   .imgArtwork {
