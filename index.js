@@ -674,6 +674,14 @@ function checkAudioDevice() {
         state.state = 0;
       }
 
+			// stop iTines state checks and communication
+			clearTimeout(getStateTimer);
+			getStateTimer = 0;
+      iTunesEnabled = false;
+
+			// close iTunes
+			execFile('nircmdc.exe', ['win', 'close', 'class', 'iTunes'], {}, function(err, stdout, stderr) {});
+
       continueAfterMute = false;
       audioDeviceState.state = newState;
       io.sockets.emit('deviceState', audioDeviceState);
@@ -687,13 +695,14 @@ function checkAudioDevice() {
 
 if('wait4AudioDevice' in settings) 
   checkAudioDevice();
-
-setTimeout(function() {
-	exec('start /min "" "C:\\Program Files\\iTunes\\iTunes.exe"', {windowsHide: true}, function(err, stdout, stderr) {
-		getStateTimer = 1;
-		getState();
-	});
-}, 5000);	
+else {
+	setTimeout(function() {
+		exec('start /min "" "C:\\Program Files\\iTunes\\iTunes.exe"', {windowsHide: true}, function(err, stdout, stderr) {
+			getStateTimer = 1;
+			getState();
+		});
+	}, 5000);	
+}
 
 server.on('error', function(err) {
   console.log('udb server error:\n'+err.stack);
