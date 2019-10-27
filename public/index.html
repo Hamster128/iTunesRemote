@@ -4,7 +4,8 @@
     <meta charset="utf-8"/>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="viewport" content = "user-scalable = no" />
+    <meta name="viewport" content = "user-scalable=no; viewport-fit=cover;" />
+    <meta http-equiv="Pragma" content="no-cache">
     <link rel="apple-touch-icon" href="img/icon.png"/>
     <link rel="apple-touch-startup-image" href="img/startup.png">
     <link rel="apple-touch-startup-image" href="img/startup.png"   media="(device-width: 320px) and (device-height: 480px) and (-webkit-device-pixel-ratio: 1)">
@@ -1194,8 +1195,8 @@
       </div>
       
       <!-- main menu -->
-      <div style="position:absolute; left:0px; right:0px; bottom:0px; height:150px; background:#EEE;">
-        <table cellspacing=0 style="width:100%; height:100%; border-top:4px solid #555;"><tr>
+      <div style="position:absolute; left:0px; right:0px; bottom:0px; height:170px; background:#EEE;">
+        <table cellspacing=0 style="width:100%; height:150px; border-top:4px solid #555;"><tr>
           <td style="text-align:center;" onTouchStart="onMainPlaylists(event, true)" onClick="onMainPlaylists()"><img id="imgMainPlaylists" src="img/playlist_active.png"></td>
           <td style="text-align:center;" onTouchStart="onMainArtists(event, true)" onClick="onMainArtists()"><img id="imgMainArtists" src="img/interpret.png"></td>
           <td style="text-align:center;" onTouchStart="onMainAlbums(event, true)" onClick="onMainAlbums()"><img id="imgMainAlbums" src="img/album.png"></td>
@@ -1207,16 +1208,16 @@
 
     <!-- player page -->
     <div id="divPlayer" class="divPlayerPage pageWidth" style="height:100vh; position:absolute;">
-      <div id="divVolumeDigitsOverlay" class="pageWidth" style="display:none; z-index:2; height:100vh; position:absolute; font-size:170px; background:rgba(0,0,0,.7); color:#FFF; text-align:center; padding-top:500px;">
+      <div id="divVolumeDigitsOverlay" class="pageWidth" style="display:none; z-index:2; height:100%; position:absolute; font-size:170px; background:rgba(0,0,0,.7); color:#FFF; text-align:center; padding-top:500px;">
        24.0 dB
       </div>
     
-      <div class="artworkWidth" style="height:100vh; position:absolute; overflow:hidden; text-align:center;">
-        <img id="artwork" src="img/current.png" class="imgArtwork "style="width:90%; position:relative;">
+      <div class="artworkWidth" style="height:100%; position:absolute; overflow:hidden; text-align:center;">
+        <img id="artwork" src="img/current.png" class="imgArtwork "style="width:95%; position:relative;">
       </div>
       
-      <div class="pageWidth" style="position:absolute; z-index:1; height:100vh;">
-        <table class="pageWidth" style="height:100vh;" cellspacing=0 cellpadding=0>
+      <div class="pageWidth" style="position:absolute; z-index:1; height:100%;">
+        <table class="pageWidth" style="height:100%;" cellspacing=0 cellpadding=0>
           <tr class="dark_background" style="height:130px;"><td>
             <table style="width:100%">
               <tr>
@@ -1297,6 +1298,7 @@
               <td style="text-align:center;" onTouchStart="onTracksPlaylists(event, true)" onClick="onTracksPlaylists(event)"><img src="img/list.png"></td>
             </tr></table>
           </td></tr>
+          <tr style="height:40px;"><td></td></tr>
         </table>
       </div>
     </div>    
@@ -1326,7 +1328,7 @@
         </table>
       </div>
       <div id="divAlbumTracklist" class="scrollable" style="position:absolute; left:0px; top:490px; right:0px; bottom:0px; overflow:scroll; -webkit-overflow-scrolling:touch;">
-        <table id="tableAlbumTracks" cellspacing=0 style="width:100%;">
+        <table id="tableAlbumTracks" cellspacing=0 style="width:100%; padding-bottom:60px;">
         </table>
       </div>
     </div>
@@ -1340,7 +1342,7 @@
         </tr></table>
       </div>
       <div id="divTracksPlaylistsList" class="scrollable" style="position:absolute; left:0px; top:150px; right:0px; bottom:0px; overflow:scroll; -webkit-overflow-scrolling:touch;">
-        <table id="tableTracksPlaylists" cellspacing=0 style="width:100%;">
+        <table id="tableTracksPlaylists" cellspacing=0 style="width:100%; padding-bottom:60px;">
         </table>
       </div>
     </div>
