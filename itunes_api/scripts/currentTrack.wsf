@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<job>
+<script language="JScript"><![CDATA[
+
+var	iTunesApp = WScript.CreateObject("iTunes.Application");
+
+var track = iTunesApp.CurrentTrack;
+
+function includeFile (filename) {
+      var fso = new ActiveXObject ("Scripting.FileSystemObject");
+      var fileStream = fso.openTextFile (filename);
+      var fileData = fileStream.readAll();
+      fileStream.Close();
+      eval(fileData);
+  }
+  
+  
+includeFile("json2.js");
+
+if(track)
+{
+  var tr = {
+    "name":track.Name,
+    "album":track.Album,
+    "artist":track.Artist,
+    "id_low":iTunesApp.ITObjectPersistentIDLow(track),
+    "id_high":iTunesApp.ITObjectPersistentIDHigh(track),
+    "trackNumber":track.TrackNumber,
+    "bitRate":track.BitRate,
+    "duration":track.Duration,
+    "rating":track.Rating,
+    "sampleRate":track.SampleRate,
+    "comment":track.Comment,
+    "year":track.Year
+  };
+  
+  WScript.echo(JSON.stringify(tr));
+/*  
+  var lists = track.Playlists;
+  
+  for(var i=1; i<=lists.Count; i++)
+  {
+    var list = lists.Item(i);
+    
+    WScript.echo('name='+list.Name+' kind='+list.Kind+' source.kind='+list.Source.Kind);
+  }
+  
+  var list =track.Playlist;
+  WScript.echo('name='+list.Name+' kind='+list.Kind+' source.kind='+list.Source.Kind);
+  */
+}
+else
+{
+  WScript.echo('{}');
+}
+]]></script>
+</job>

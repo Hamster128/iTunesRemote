@@ -3,6 +3,8 @@
   "wait4AudioDeviceSeconds": 5,
   "devialetSource": "iTunes",
   "devialetOtherSourceDevice": "Headphones",
+  "startAlso": "G:/Games/DVDs/Shairport4w/Shairport4wx64.exe",
+  "killAlso": "Shairport4wx64.exe",
   "playlists": {
     "pl_160007389_2062727269": {
       "mode": 1,

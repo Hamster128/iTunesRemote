@@ -89,6 +89,7 @@
   
   .imgArtwork {
     top:170px;
+    width:95%;
   }
   
   .player_pos_left {
@@ -115,6 +116,7 @@
 
 @media (orientation: landscape) 
   {
+    
   .darkBackground {
     background-image: url(/img/background.jpg);
   }
@@ -126,6 +128,10 @@
   .artworkWidth {
     left:100px;
     width:700px;
+  }
+
+  .imgArtwork {
+    width:90%;
   }
     
   .vertOnly {
@@ -154,7 +160,7 @@
   
   .imgArtwork {
     top:130px;
-    -webkit-filter: grayscale(25%);
+    -webkit-filter: contrast(96%) brightness(102%) saturate(75%);
   }
   
   .player_pos_left {

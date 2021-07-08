@@ -2,7 +2,7 @@ var express = require('express');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-var itunes = require('itunes_api');
+var itunes = require('./itunes_api');
 var myip = require('quick-local-ip');
 var fs = require('fs');
 var path = require('path');
@@ -337,7 +337,7 @@ io.on('connection', function(socket){
 });
 
 
-var port = 80;
+var port = 81;
 
 http.on('error', function(e) {
   if(e.code == 'EADDRINUSE') {
@@ -572,6 +572,9 @@ function checkAudioDevice() {
         // close iTunes
         execFile('nircmdc.exe', ['win', 'close', 'class', 'iTunes'], {}, function(err, stdout, stderr) {});
 
+        if(settings.killAlso)
+          execFile('nircmdc.exe', ['killprocess', settings.killAlso], {}, function(err, stdout, stderr) {});
+
         state.state = 0;
         io.sockets.emit('state', state);
         
@@ -607,6 +610,10 @@ function checkAudioDevice() {
         
           exec('start /min "" "C:\\Program Files\\iTunes\\iTunes.exe"', {windowsHide: true}, function(err, stdout, stderr) {
           });
+
+          if(settings.startAlso)
+            exec('start /min "" "'+settings.startAlso+'"', {windowsHide: true}, function(err, stdout, stderr) {
+            });
 
           setTimeout(function(){
             if(audioDeviceState.state < 1)
@@ -678,9 +685,13 @@ function checkAudioDevice() {
 			clearTimeout(getStateTimer);
 			getStateTimer = 0;
       iTunesEnabled = false;
+      systemRequiredOff();
 
 			// close iTunes
 			execFile('nircmdc.exe', ['win', 'close', 'class', 'iTunes'], {}, function(err, stdout, stderr) {});
+
+      if(settings.killAlso)
+        execFile('nircmdc.exe', ['killprocess', settings.killAlso], {}, function(err, stdout, stderr) {});
 
       continueAfterMute = false;
       audioDeviceState.state = newState;
