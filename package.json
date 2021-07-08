@@ -3,7 +3,7 @@
   "description": "web app to remote control iTunes",
   "version": "0.1.0",
   "author": {
-    "name": "Henry Kellner",
+    "name": "Henry Kellner"
   },
   "dependencies": {
     "express": "~4.13.4",
