@@ -39,7 +39,8 @@ else{
 			"comment":track.Comment,
 			"year":track.Year,
 			"playedCount":track.PlayedCount,
-			"grouping":track.Grouping
+			"grouping":track.Grouping,
+			"volumeAdjustment": track.VolumeAdjustment
 		};
 		
 		WScript.echo(JSON.stringify(tr));

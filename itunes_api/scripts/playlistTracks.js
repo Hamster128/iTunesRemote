@@ -41,7 +41,9 @@ while(num_sources) {
             
           if(idx.hasOwnProperty(track.Album))
             continue;
-          
+
+          idx[track.Album] = true;
+            
           if(skip) {
             skip--;
             continue;
@@ -74,7 +76,6 @@ while(num_sources) {
           };  
             
           list.push(entry);
-          idx[track.Album] = true;
 
         } else {    // list of tracks
           if(skip) {
@@ -120,7 +121,7 @@ while(num_sources) {
         }
       }
     
-      WScript.echo(JSON.stringify(list));
+      WScript.echo(JSON.stringify(list, null, 2));
 	  }
     else
       WScript.echo('[]');

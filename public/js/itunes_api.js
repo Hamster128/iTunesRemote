@@ -32,6 +32,10 @@ itunes.setShuffle = function(s) {
     socket.emit('setShuffle', {"shuffle":s});
   };
 
+itunes.setDSP = function(s) {
+    socket.emit('eq_apo', {"enabled":s});
+  };
+
 itunes.albumTracks = function(track, ref) {
     socket.emit('albumTracks', {"track":track, "ref":ref});
   };

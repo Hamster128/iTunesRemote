@@ -14,7 +14,7 @@
     <link rel="stylesheet" type="text/css" href="css/my.css">
     <title>Remote Pro</title>
   </head>
-  <body class="darkBackground" style="margin:0; position:fixed; overflow:hidden; font-family:Arial;" onMouseUp="endVolume(false); endPosition(false);" onTouchEnd="endVolume(true); endPosition(true);" >
+  <body class="darkBackground" style="margin:0; position:fixed; overflow:hidden; font-family:Arial;" onMouseUp="endVolume(false); endPosition(false);" onTouchEnd="endVolume(true); endPosition(true);">
     <script src="js/socket.io-1.2.0.js"></script>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script src="js/itunes_api.js"></script>
@@ -34,7 +34,7 @@
       var playlist = {"id_low":0, "id_high":0};
       var ratingTouched = false, artist = null, artistAlbum = null, playlistAlbum = null;
       var actTracksPlaylistsLow = 0, actTracksPlaylistsHigh = 0;
-      var volDragable = true;
+      var volDevialet = true;
       var actVolumeDigits = '';
       var hideVolumeDigitsOverlayTimeout = 0;
       var second = 0, interval = 1000;
@@ -165,6 +165,12 @@
 
       socket.on('settings', function(msg){
         settings = msg;
+
+        if(settings.dsp) {
+          $('#imgDSP').attr("src", "img/dsp_on.png");
+        } else {
+          $('#imgDSP').attr("src", "img/dsp_off.png");
+        }
       });
       
       socket.on('deviceState', function(msg){
@@ -260,14 +266,14 @@
 
         if(!dragVolumeActive) {
           displayVolume(state.volume);
+        }
           
-          if(state.volumeDigits) {
-            volDragable = false;
-            
-            if(actVolumeDigits != state.volumeDigits) {
-              actVolumeDigits = state.volumeDigits;
-              $('#divVolumeDigits').css('display','').html(state.volumeDigits);              
-            }
+        if(state.volumeDigits) {
+          volDevialet = false;
+          
+          if(actVolumeDigits != state.volumeDigits) {
+            actVolumeDigits = state.volumeDigits;
+            $('#divVolumeDigits').css('display','').html(state.volumeDigits);              
           }
         }
 
@@ -485,9 +491,7 @@
       }
       
       function onVolume(touched, ev) {
-        if(!volDragable)
-          return;
-        
+
         if(touchScreen && !touched)
           return;
 
@@ -497,9 +501,13 @@
           pos = ev.changedTouches[0].pageX - $('#tdVolume').offset().left;
         else
           pos = ev.offsetX;
-         
-        var width = $('#tdVolume')[0].offsetWidth;
-        var volume = Math.round(pos / width * 100);
+
+        var widthTouchArea = $('#tdVolume')[0].offsetWidth;
+        var widthSlider    = $('#divVolumeSlider')[0].offsetWidth;
+
+        pos -= widthTouchArea - widthSlider;
+
+        var volume = Math.round(pos / widthSlider * 100);
         
         if(volume > 100)
           volume = 100;
@@ -672,6 +680,22 @@
         repeatActiveTimeout = setTimeout(function(){repeatActive = false;}, 1000);
       }
       
+      function onDSP(touched) {
+        if(touchScreen && !touched)
+          return;
+
+        settings.dsp = !settings["dsp"];
+
+        if(settings.dsp) {
+          $('#imgDSP').attr("src", "img/dsp_on.png");
+        } else {
+          $('#imgDSP').attr("src", "img/dsp_off.png");
+        }
+
+        itunes.setDSP(settings.dsp);
+        itunes.settings(settings);
+      }
+
       function onShuffle(touched) {
         if(touchScreen && !touched)
           return;
@@ -773,6 +797,7 @@
       }
       
       function onPlaylistLoadMore() {
+        $('#tablePlaylist .loadMore').css("background-color", "#0AF");
         itunes.playlistTracks(playlist.id_low, playlist.id_high, playlist.loaded, playlist.mode, playlist.sortOrder);
       }
 
@@ -1003,6 +1028,12 @@
         }
       });
       
+      function jsEscape(text) {
+        text = text.replace(/'/g, '`');
+        text = text.replace(/"/g, '&quot;');
+        return text;
+      }
+
       function searchResultArtists(list) {
         var $table = $('#tableArtists');
         
@@ -1010,8 +1041,8 @@
         
         for(var i=0; i<list.length; i++) {
           var li = list[i];
-          
-          $table.append('<tr class="trTrack" style="border-bottom:4px solid #000; height:150px;" onClick="onArtist('+li.id_low+', '+li.id_high+', \''+li.name+'\')"><td class="tdTrackInfo"><span class="tdTrackName">'+li.name+'</span></td></tr>');
+
+          $table.append('<tr class="trTrack" style="border-bottom:4px solid #000; height:150px;" onClick="onArtist('+li.id_low+', '+li.id_high+', \''+jsEscape(li.name)+'\')"><td class="tdTrackInfo"><span class="tdTrackName">'+li.name+'</span></td></tr>');
         }
       }
 
@@ -1197,11 +1228,11 @@
       <!-- main menu -->
       <div style="position:absolute; left:0px; right:0px; bottom:0px; height:170px; background:#EEE;">
         <table cellspacing=0 style="width:100%; height:150px; border-top:4px solid #555;"><tr>
-          <td style="text-align:center;" onTouchStart="onMainPlaylists(event, true)" onClick="onMainPlaylists()"><img id="imgMainPlaylists" src="img/playlist_active.png"></td>
-          <td style="text-align:center;" onTouchStart="onMainArtists(event, true)" onClick="onMainArtists()"><img id="imgMainArtists" src="img/interpret.png"></td>
-          <td style="text-align:center;" onTouchStart="onMainAlbums(event, true)" onClick="onMainAlbums()"><img id="imgMainAlbums" src="img/album.png"></td>
-          <td style="text-align:center;" onTouchStart="onMainSongs(event, true)" onClick="onMainSongs()"><img id="imgMainSongs" src="img/song.png"></td>
-          <td style="text-align:center;" onTouchStart="onMainComposers(event, true)" onClick="onMainComposers()"><img id="imgMainComposers" src="img/composer.png"></td>
+          <td style="text-align:center;" onTouchStart="onMainPlaylists(event, true)" onClick="onMainPlaylists(event)"><img id="imgMainPlaylists" src="img/playlist_active.png"></td>
+          <td style="text-align:center;" onTouchStart="onMainArtists(event, true)" onClick="onMainArtists(event)"><img id="imgMainArtists" src="img/interpret.png"></td>
+          <td style="text-align:center;" onTouchStart="onMainAlbums(event, true)" onClick="onMainAlbums(event)"><img id="imgMainAlbums" src="img/album.png"></td>
+          <td style="text-align:center;" onTouchStart="onMainSongs(event, true)" onClick="onMainSongs(event)"><img id="imgMainSongs" src="img/song.png"></td>
+          <td style="text-align:center;" onTouchStart="onMainComposers(event, true)" onClick="onMainComposers(event)"><img id="imgMainComposers" src="img/composer.png"></td>
         </tr></table>
       </div>
     </div>
@@ -1226,7 +1257,7 @@
                   <span id='track' class="track_title" style="font-weight:bold;"></span><br>
                   <span id='album_artist' class="artist_album_title"></span>
                 </td>
-                <td class="vertOnly"><img src="img/blank.png"></td>
+                <td class="vertOnly" onTouchStart="onDSP(true)" onClick="onDSP()"><img id="imgDSP" src="img/dsp_off.png" ></td>
             </table>
           </td></tr>
           
@@ -1278,7 +1309,7 @@
                 <td style="text-align:center;" onMouseDown="onVolume(false, event)" onTouchStart="onVolume(true, event)" onMouseMove="onVolumeMove(false, event)" onTouchMove="onVolumeMove(true, event)" id="tdVolume">
                   <table cellspacing=0 cellpadding=0 style="width:100%"><tr>
                     <td style="width:1px;"><div id='divVolumeDigits' style='padding-right:20px; width:100px; color:#FFF; display:none; font-family:Arial; font-size:40px;'>12</div></td>
-                    <td><div style="width:100%; height:30px; border-radius:15px; border:3px solid #FFF; display:inline-block;">
+                    <td><div style="width:100%; height:30px; border-radius:15px; border:3px solid #FFF; display:inline-block;" id="divVolumeSlider">
                       <div id="divVolume" style="background:#FFF; border-radius:10px; width:0; height:100%"></div>
                     </div></td>
                   </tr></table>

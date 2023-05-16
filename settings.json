@@ -3,6 +3,8 @@
   "wait4AudioDeviceSeconds": 5,
   "devialetSource": "iTunes",
   "devialetOtherSourceDevice": "Headphones",
+  "-startAlso": "C:/Program Files/Reflector 4/Reflector4.exe",
+  "-killAlso": "Reflector4.exe",
   "startAlso": "G:/Games/DVDs/Shairport4w/Shairport4wx64.exe",
   "killAlso": "Shairport4wx64.exe",
   "playlists": {
@@ -19,7 +21,7 @@
     },
     "pl_160007388_2062727269": {
       "sortOrder": 1,
-      "mode": 1
+      "mode": 0
     },
     "pl_804887223_-82048499": {
       "sortOrder": 1,
@@ -72,6 +74,34 @@
     },
     "pl_-1841834797_429180268": {
       "mode": 1
+    },
+    "pl_969173978_383730586": {
+      "mode": 1
+    },
+    "pl_-144678525_-1122656128": {
+      "mode": 1
+    },
+    "pl_509357527_-732410681": {
+      "mode": 1
+    },
+    "pl_-2014333500_1937725802": {
+      "mode": 1
+    },
+    "pl_618397459_941037574": {
+      "mode": 1
+    },
+    "pl_-1537916746_-630836677": {
+      "mode": 1
+    },
+    "pl_-1508530654_65550582": {
+      "mode": 1
+    },
+    "pl_702649457_-44207872": {
+      "mode": 1
+    },
+    "pl_541106853_1169609687": {
+      "mode": 1
     }
-  }
+  },
+  "dsp": true
 }

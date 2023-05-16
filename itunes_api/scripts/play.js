@@ -7,5 +7,5 @@ iTunesApp.SoundVolume = 0;
 
 iTunesApp.Play();
 
-for(var v=0; v<=vol; v+=2)
+for(var v=0; v<=vol; v+=20)
   iTunesApp.SoundVolume = v;

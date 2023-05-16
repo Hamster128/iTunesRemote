@@ -38,6 +38,10 @@ let executeScriptRes = function(scriptName, cb) {
 		var so = fs.readFileSync(tmpName);
 		fs.unlink(tmpName, function(err) {});
 
+		if(scriptName.substring(0, 15) != 'currentTrack.js' &&
+			 scriptName.substring(0, 17) != 'getPlayerState.js')
+			console.log(scriptName, iconv.decode(so, 'utf16'));
+
 		cb(null, so, '');
 	});
 };
@@ -51,7 +55,7 @@ let doNextInQueue = function() {
 
 	if (job.func == 'play') {
 		executeScript('play.js', function(err, stdout, stderr) {
-			if (err) console.log('itunes.play error ' + err);
+			if (err) console.log('itunes.play error', err);
 
 			if (job.cb) job.cb();
 
@@ -60,7 +64,7 @@ let doNextInQueue = function() {
 		});
 	} else if (job.func == 'stop') {
 		executeScript('stop.js', function(err, stdout, stderr) {
-			if (err) console.log('itunes.stop error ' + err);
+			if (err) console.log('itunes.stop error', err);
 
 			if (job.cb) job.cb();
 
@@ -69,7 +73,7 @@ let doNextInQueue = function() {
 		});
 	} else if (job.func == 'pause') {
 		executeScript('pause.js', function(err, stdout, stderr) {
-			if (err) console.log('itunes.pause error ' + err);
+			if (err) console.log('itunes.pause error', err);
 
 			if (job.cb) job.cb();
 
@@ -78,7 +82,7 @@ let doNextInQueue = function() {
 		});
 	} else if (job.func == 'nextTrack') {
 		executeScript('nextTrack.js', function(err, stdout, stderr) {
-			if (err) console.log('itunes.nextTrack error ' + err);
+			if (err) console.log('itunes.nextTrack error', err);
 
 			if (job.cb) job.cb();
 
@@ -87,7 +91,7 @@ let doNextInQueue = function() {
 		});
 	} else if (job.func == 'backTrack') {
 		executeScript('backTrack.js', function(err, stdout, stderr) {
-			if (err) console.log('itunes.backTrack error ' + err);
+			if (err) console.log('itunes.backTrack error', err);
 
 			if (job.cb) job.cb();
 
@@ -96,7 +100,7 @@ let doNextInQueue = function() {
 		});
 	} else if (job.func == 'getPlayerState') {
 		executeScriptRes('getPlayerState.js', function(err, stdout, stderr) {
-			if (err) console.log('itunes.getPlayerState error ' + err);
+			if (err) console.log('itunes.getPlayerState error', err);
 
 			if (job.cb) {
 				var str = iconv.decode(stdout, 'utf16');
@@ -115,7 +119,7 @@ let doNextInQueue = function() {
 		});
 	} else if (job.func == 'currentTrack') {
 		executeScriptRes('currentTrack.js', function(err, stdout, stderr) {
-			if (err) console.log('itunes.currentTrack error ' + err);
+			if (err) console.log('itunes.currentTrack error', err);
 
 			if (job.cb) {
 				var str = iconv.decode(stdout, 'utf16');
@@ -134,14 +138,14 @@ let doNextInQueue = function() {
 		});
 	} else if (job.func == 'currentArtwork') {
 		executeScriptRes('currentArtwork.js', function(err, stdout, stderr) {
-			if (err) console.log('itunes.currentArtwork error ' + err);
+			if (err) console.log('itunes.currentArtwork error', err);
 
 			if (job.cb) {
 				var str = iconv.decode(stdout, 'utf16');
 				try {
 					job.cb(JSON.parse(str));
 				} catch (e) {
-					console.log('itunes.currentArtwork error parsing [' + str + '] ' + e);
+					console.log('itunes.currentArtwork error parsing [' + str + '] ',  e);
 					job.cb({ found: false });
 				}
 			}
@@ -151,7 +155,7 @@ let doNextInQueue = function() {
 		});
 	} else if (job.func == 'getArtwork') {
 		executeScriptRes('getArtwork.js ' + job.id_low + ' ' + job.id_high, function(err, stdout, stderr) {
-			if (err) console.log('itunes.getArtwork error ' + err);
+			if (err) console.log('itunes.getArtwork error', err);
 
 			if (job.cb) {
 				var str = iconv.decode(stdout, 'utf16');
@@ -163,7 +167,7 @@ let doNextInQueue = function() {
 		});
 	} else if (job.func == 'setPlayerPosition') {
 		executeScript('setPlayerPosition.js ' + job.newPosition, function(err, stdout, stderr) {
-			if (err) console.log('itunes.setPlayerPosition error ' + err);
+			if (err) console.log('itunes.setPlayerPosition error', err);
 
 			if (job.cb) job.cb();
 
@@ -172,7 +176,7 @@ let doNextInQueue = function() {
 		});
 	} else if (job.func == 'setSoundVolume') {
 		executeScript('setSoundVolume.js ' + job.newVolume, function(err, stdout, stderr) {
-			if (err) console.log('itunes.setSoundVolume error ' + err);
+			if (err) console.log('itunes.setSoundVolume error', err);
 
 			if (job.cb) job.cb();
 
@@ -181,7 +185,7 @@ let doNextInQueue = function() {
 		});
 	} else if (job.func == 'setRepeat') {
 		executeScript('setRepeat.js ' + job.r, function(err, stdout, stderr) {
-			if (err) console.log('itunes.setRepeat error ' + err);
+			if (err) console.log('itunes.setRepeat error', err);
 
 			if (job.cb) job.cb();
 
@@ -190,7 +194,7 @@ let doNextInQueue = function() {
 		});
 	} else if (job.func == 'setShuffle') {
 		executeScript('setShuffle.js ' + job.s, function(err, stdout, stderr) {
-			if (err) console.log('itunes.setShuffle error ' + err);
+			if (err) console.log('itunes.setShuffle error ', err);
 
 			if (job.cb) job.cb();
 
@@ -199,14 +203,14 @@ let doNextInQueue = function() {
 		});
 	} else if (job.func == 'albumTracks') {
 		executeScriptRes('albumTracks.js ' + job.track.id_low + ' ' + job.track.id_high, function(err, stdout, stderr) {
-			if (err) console.log('itunes.albumTracks error ' + err);
+			if (err) console.log('itunes.albumTracks error ', err);
 
 			if (job.cb) {
 				var str = iconv.decode(stdout, 'utf16');
 				try {
 					job.cb(JSON.parse(str));
 				} catch (e) {
-					console.log('itunes.albumTracks error parsing [' + str + '] ' + e);
+					console.log('itunes.albumTracks error parsing [' + str + '] ',  e);
 				}
 			}
 
@@ -215,7 +219,7 @@ let doNextInQueue = function() {
 		});
 	} else if (job.func == 'playAlbumFrom') {
 		executeScript('playAlbumFrom.js ' + job.id.id_low + ' ' + job.id.id_high, function(err, stdout, stderr) {
-			if (err) console.log('itunes.playAlbumFrom error ' + err);
+			if (err) console.log('itunes.playAlbumFrom error ', err);
 
 			if (job.cb) job.cb();
 
@@ -224,7 +228,7 @@ let doNextInQueue = function() {
 		});
 	} else if (job.func == 'playListByName') {
 		executeScript('playListByName.js ' + job.name, function(err, stdout, stderr) {
-			if (err) console.log('itunes.playListByName error ' + err);
+			if (err) console.log('itunes.playListByName error ', err);
 
 			if (job.cb) job.cb();
 
@@ -233,14 +237,14 @@ let doNextInQueue = function() {
 		});
 	} else if (job.func == 'playLists') {
 		executeScriptRes('playLists.js', function(err, stdout, stderr) {
-			if (err) console.log('itunes.playLists error ' + err);
+			if (err) console.log('itunes.playLists error ', err);
 
 			if (job.cb) {
 				var str = iconv.decode(stdout, 'utf16');
 				try {
 					job.cb(JSON.parse(str));
 				} catch (e) {
-					console.log('itunes.playLists error parsing [' + str + '] ' + e);
+					console.log('itunes.playLists error parsing [' + str + '] ',  e);
 				}
 			}
 
@@ -249,14 +253,14 @@ let doNextInQueue = function() {
 		});
 	} else if (job.func == 'tracksPlaylists') {
 		executeScriptRes('tracksPlaylists.js ' + job.track.id_low + ' ' + job.track.id_high, function(err, stdout, stderr) {
-			if (err) console.log('itunes.tracksPlaylists error ' + err);
+			if (err) console.log('itunes.tracksPlaylists error ', err);
 
 			if (job.cb) {
 				var str = iconv.decode(stdout, 'utf16');
 				try {
 					job.cb(JSON.parse(str));
 				} catch (e) {
-					console.log('itunes.tracksPlaylists error parsing [' + str + '] ' + e);
+					console.log('itunes.tracksPlaylists error parsing [' + str + '] ',  e);
 				}
 			}
 
@@ -276,14 +280,14 @@ let doNextInQueue = function() {
 				' ' +
 				job.id.sortOrder,
 			function(err, stdout, stderr) {
-				if (err) console.log('itunes.playlistTracks error ' + err);
+				if (err) console.log('itunes.playlistTracks error', err);
 
 				if (job.cb) {
 					var str = iconv.decode(stdout, 'utf16');
 					try {
 						job.cb(JSON.parse(str));
 					} catch (e) {
-						console.log('itunes.playlistTracks error parsing [' + str + '] ' + e);
+						console.log('itunes.playlistTracks error parsing [' + str + ']', e);
 					}
 				}
 
@@ -292,15 +296,16 @@ let doNextInQueue = function() {
 			}
 		);
 	} else if (job.func == 'search') {
-		executeScriptRes('search.js ' + job.type + ' "' + job.val + '" ', function(err, stdout, stderr) {
-			if (err) console.log('itunes.search error ' + err);
+		let script = 'search.js ' + job.type + ' "' + job.val + '" ';
+		executeScriptRes(script, function(err, stdout, stderr) {
+			if (err) console.log('itunes.search error ', script, err);
 
 			if (job.cb) {
 				var str = iconv.decode(stdout, 'utf16');
 				try {
 					job.cb(JSON.parse(str));
 				} catch (e) {
-					console.log('itunes.search error parsing [' + str + '] ' + e);
+					console.log('itunes.search error parsing [' + str + ']', script, e);
 				}
 			}
 
@@ -311,7 +316,7 @@ let doNextInQueue = function() {
 		executeScript(
 			'playTrackInList.js ' + job.id.id_low + ' ' + job.id.id_high + ' ' + job.id.idx + ' ' + job.id.sortOrder,
 			function(err, stdout, stderr) {
-				if (err) console.log('itunes.playTrackInList error ' + err);
+				if (err) console.log('itunes.playTrackInList error ', err);
 
 				if (job.cb) job.cb();
 
@@ -325,7 +330,7 @@ let doNextInQueue = function() {
 			stdout,
 			stderr
 		) {
-			if (err) console.log('itunes.setRating error ' + err);
+			if (err) console.log('itunes.setRating error ', err);
 
 			if (job.cb) job.cb();
 
@@ -343,7 +348,7 @@ let doNextInQueue = function() {
 				' ' +
 				job.msg.id_high,
 			function(err, stdout, stderr) {
-				if (err) console.log('itunes.removeTrackFromList error ' + err);
+				if (err) console.log('itunes.removeTrackFromList error ', err);
 
 				if (job.cb) job.cb();
 
@@ -362,7 +367,7 @@ let doNextInQueue = function() {
 				' ' +
 				job.msg.id_high,
 			function(err, stdout, stderr) {
-				if (err) console.log('itunes.addTrackToList error ' + err);
+				if (err) console.log('itunes.addTrackToList error ', err);
 
 				if (job.cb) job.cb();
 
@@ -372,14 +377,14 @@ let doNextInQueue = function() {
 		);
 	} else if (job.func == 'artistAlbums') {
 		executeScriptRes('artistAlbums.js ' + job.id.id_low + ' ' + job.id.id_high, function(err, stdout, stderr) {
-			if (err) console.log('itunes.artistAlbums error ' + err);
+			if (err) console.log('itunes.artistAlbums error ', err);
 
 			if (job.cb) {
 				var str = iconv.decode(stdout, 'utf16');
 				try {
 					job.cb(JSON.parse(str));
 				} catch (e) {
-					console.log('itunes.artistAlbums error parsing [' + str + '] ' + e);
+					console.log('itunes.artistAlbums error parsing [' + str + '] ',  e);
 				}
 			}
 

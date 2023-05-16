@@ -3,14 +3,12 @@ var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var itunes = require('./itunes_api');
-var myip = require('quick-local-ip');
+var os = require('os');
 var fs = require('fs');
 var path = require('path');
 const execFile = require('child_process').execFile;
 const exec = require('child_process').exec;
-const dgram = require('dgram');
-const server = dgram.createSocket('udp4');
-
+const devialet = require('./devialet');
 
 var state = {
   state:0,
@@ -76,6 +74,8 @@ function doNextArtworkQueue() {
     artWorkBusy = false;
     doNextArtworkQueue();
   } else {
+
+    console.log('getArtwork '+q.id_high+' '+q.id_low);
 
     itunes.getArtwork(q.id_low, q.id_high, function(rsp) {
       if(!rsp.found)
@@ -197,7 +197,13 @@ io.on('connection', function(socket){
     if(!iTunesEnabled)
       return;
       
-    itunes.setSoundVolume(msg.newVolume);
+    if(state.volumeDigits) {
+      let db = (msg.newVolume - 100) * 0.4; // -40 - +0
+      db = Math.floor(db * 2) / 2;  // round to 0.5
+      devialet.vol(db);
+  } else {
+      itunes.setSoundVolume(msg.newVolume);
+    }
   });
 
   socket.on('setRepeat', function(msg){
@@ -329,6 +335,22 @@ io.on('connection', function(socket){
         console.log(err);
     });       
   });
+
+  socket.on('eq_apo', function(msg){
+
+    console.log('eq_apo', msg);
+
+    if(msg.enabled) {
+      fs.copyFileSync("C:\\Program Files\\EqualizerAPO\\config\\on.txt", "C:\\Program Files\\EqualizerAPO\\config\\config.txt");
+    } else {
+      fs.copyFileSync("C:\\Program Files\\EqualizerAPO\\config\\off.txt", "C:\\Program Files\\EqualizerAPO\\config\\config.txt");
+    }
+
+    fs.writeFile("settings.json", JSON.stringify(msg, null, 2), function(err) {
+      if(err)
+        console.log(err);
+    });       
+  });
   
   socket.emit('settings', settings);
   socket.emit('state', state);
@@ -348,16 +370,27 @@ http.on('error', function(e) {
   }
 });
 
+var interfaces = os.networkInterfaces();
+var addresses = [];
+for (var k in interfaces) {
+    for (var k2 in interfaces[k]) {
+        var address = interfaces[k][k2];
+        if (address.family === 'IPv4' && !address.internal) {
+            addresses.push(address.address);
+        }
+    }
+}
+
 http.on('listening', function() {
   console.log('Open the following address in the browser of your mobile device:');
-  console.log('http://'+myip.getLocalIP4()+(port==80?'':(':'+port)));
+  console.log('http://'+addresses[0]+(port==80?'':(':'+port)));
 });
 
 
 http.listen(port);
 
 function setDevialetInfo() {
-  state.volume = devialetVol / 0.3 + 100;  // -30 - +0
+  state.volume = devialetVol / 0.4 + 100;  // -40 - +0
   
   if(state.volume < 0)
     state.volume = 0;
@@ -371,19 +404,49 @@ function setDevialetInfo() {
     state.volumeDigits += '.0';   
 }
 
-function systemRequired() {
-//  console.log('SystemRequired');
+function systemRequired(bEnable) {
+
+  if(bEnable) {
+
+    if(systemRequiredOffTimer) {
+      console.log('systemRequired off...canceled');
+      clearTimeout(systemRequiredOffTimer);
+      systemRequiredOffTimer = 0;
+    }
+
+    if(systemRequiredInterval) {
+      return;
+    }
+      
+    console.log('systemRequired on');
+    callSystemRequired();
+    systemRequiredInterval = setInterval(callSystemRequired, 59000);
+  
+  } else {
+
+    if(!systemRequiredInterval) {
+      return;
+    }
+
+    if(systemRequiredOffTimer) {
+      return;
+    }
+
+    console.log('systemRequired off...');
+    systemRequiredOffTimer = setTimeout(systemRequiredOff, 60000);
+  }
+}
+
+function callSystemRequired() {
   execFile('SystemRequired.exe', [], {}, function(err, stdout, stderr) {
-//    console.log('SystemRequired '+err+' '+stdout);
   });
 }
 
 function systemRequiredOff() {
-	console.log('systemRequired off');
+  console.log('systemRequired off...done');
   clearInterval(systemRequiredInterval);
   systemRequiredInterval = 0;
   systemRequiredOffTimer = 0;
-//  console.log('systemRequiredOff');
 }
 
 function getState() {
@@ -399,23 +462,6 @@ function getState() {
       var oldPos = state.position;
       
       state = rsp;
-      
-      if(state.state && !systemRequiredInterval) {
-        if(systemRequiredOffTimer) {
-          clearTimeout(systemRequiredOffTimer);
-          systemRequiredOffTimer = 0;
-        }
-          
-				console.log('Playing -> systemRequired on');
-        systemRequired();
-        systemRequiredInterval = setInterval(systemRequired, 59000);
-      }
-       
-      if(!state.state && systemRequiredInterval && !systemRequiredOffTimer) {
-				console.log('Stopped -> systemRequired off...');
-        systemRequiredOffTimer = setTimeout(systemRequiredOff, 300000);
-      }
-      
       
       if(!state.state || newPosSet)
         state.position = oldPos;
@@ -556,7 +602,9 @@ function checkAudioDevice() {
     }
       
     if(found > -1) { // Audio device is present
-    
+
+      systemRequired(true);
+
       if(audioDeviceState.state == 2) {
         setTimeout(checkAudioDevice, audioDeviceCheckInterval);
         return;
@@ -635,6 +683,9 @@ function checkAudioDevice() {
       });
     
     } else {  // audio Device is currently not present
+
+      systemRequired(false);
+
       var newState = -1;
       
       if(found == -1)  // wrong source selected on audio device
@@ -685,7 +736,6 @@ function checkAudioDevice() {
 			clearTimeout(getStateTimer);
 			getStateTimer = 0;
       iTunesEnabled = false;
-      systemRequiredOff();
 
 			// close iTunes
 			execFile('nircmdc.exe', ['win', 'close', 'class', 'iTunes'], {}, function(err, stdout, stderr) {});
@@ -715,76 +765,34 @@ else {
 	}, 5000);	
 }
 
-server.on('error', function(err) {
-  console.log('udb server error:\n'+err.stack);
-  server.close();
-});
 
-server.on('message', function(msg, rinfo) {
+devialet.on("status", function(status){
 
-//  fs.writeFile('devialet_msg.txt', msg, function(err){});
-
-  var vol = 0;
-  var source = 'OFF';
-  
-  var b308 = msg.readUInt8(308);
-  
-  var sourceNr = (b308 >> 4) & 0x07;
-  var mute     = (b308 >> 1) & 0x01;
-    
-  var sn = 0;
-        
-  for(var s = 0; s < 15; s++) {
-    var enabled = msg.toString('utf-8', 52 + s * 17, 53 + s * 17);
-    
-    if(enabled == '1') {
-      sn++;
-      
-      if(sn < sourceNr) 
-        continue;
-        
-      var e = 53 + s * 17;
-      
-      for(; e < 53 + s * 17 + 16; e++) 
-      {
-        var chr = msg.readUInt8(e);
-        
-        if(chr == 0)
-          break;
-      }
-  
-      source = msg.toString('utf-8', 53 + s * 17, e);
-      break;
-    }
-  }
-
-  vol = msg.readUInt8(310);
-  vol = (vol - 195) / 2; // -97.5 - +30 dB  (127.5)
-  
-  if(vol != devialetVol) {
-    devialetVol = vol;
+  if(status.vol != devialetVol) {
+    console.log('new devialet vol', devialetVol, status.vol);
+    devialetVol = status.vol;
     setDevialetInfo();
     io.sockets.emit('state', state);
   }
   
   checkComputerWasSleeping();
   
-  if(mute != audioDeviceState.mute && audioDeviceState.state == 2) {
+  if(status.mute != audioDeviceState.mute && audioDeviceState.state == 2) {
   
-    if(mute && state.state) {
+    if(status.mute && state.state) {
       itunes.pause();
       continueAfterMute = true;
     }
     
-    if(!mute && continueAfterMute) {
+    if(!status.mute && continueAfterMute) {
       itunes.play();
       continueAfterMute = false;
     }
   }
   
-  if(source != audioDeviceState.source || mute != audioDeviceState.mute) {
-    audioDeviceState.source = source;
-    audioDeviceState.mute   = mute;
+  if(status.source != audioDeviceState.source || status.mute != audioDeviceState.mute) {
+    audioDeviceState.source = status.source;
+    audioDeviceState.mute   = status.mute;
     io.sockets.emit('deviceState', audioDeviceState);
   }
 });
@@ -808,9 +816,3 @@ setInterval(function() {
   lastCheckSleepTime = currentTime;
 }, 500);
 
-// start udp server
-server.on('listening', function() {
-  var address = server.address();
-});
-
-server.bind(45454); // UDB port of Devialet
