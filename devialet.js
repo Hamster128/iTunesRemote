@@ -18,11 +18,10 @@ const CMD_UNMUTE  = 0x0007;
 let packet_cnt = Math.random() * 65535, cmd_cnt = Math.random() * 65535;
 let onStatus = function() {};
 let sendQueue = [], sleep;
+let status = {vol:0};
 
 //--------------------------------------------------------------
 server.on('message', function(msg, rinfo) {
-
-  let status = {};
 
   status.source = 'OFF';
 
@@ -121,7 +120,7 @@ function sendNext() {
   sleep = setTimeout(function() {
     sleep = null;
     sendNext();
-  }, 500);
+  }, 50);
 
   client.send(msg, 0, msg.length, CMD_PORT, Host, function(err, bytes) {
     if (err) {
@@ -170,6 +169,10 @@ module.exports = {
 
     db = Math.floor(db * 2) / 2;  // round to 0.5
 
+    if(db == status.vol) {
+      return;
+    }
+
     console.log(`devialet volume > ${db}`);
 
     function db_convert(db) {
@@ -203,6 +206,8 @@ module.exports = {
     msg.writeUInt16BE( val, 8);
 
     sendPacket(msg);
+
+    status.vol = db;
   },
 
   //--------------------------------------------------------------
