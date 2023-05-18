@@ -19,6 +19,18 @@
   border-bottom:4px solid #DDD;
 }
 
+.message {
+  width:100vw; 
+  height:100px; 
+  top:-130px;
+  z-index:3; 
+  text-align:center; 
+  position:absolute;
+  padding-top: 30px;
+  background:rgb(155, 155, 155);
+  font-size:60px;
+}
+
 .inputSearch {
   width: 100%;
   font-size:60px;

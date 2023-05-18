@@ -41,6 +41,7 @@
       var actAudioDevicePresent = 2;
       var actAudioDeviceSource = '';
       var actAudioDeviceMute = 0;
+      var msgHideTimeout;
 
       function isTouchDevice() {
         var el = document.createElement('div');
@@ -577,7 +578,7 @@
           $table.append(oTr);
         }
 
-        markPlayingTrack();        
+        markPlayingTrack();
         
         // bug fix iOS 11.1.1 did often not scroll
         $div.css('-webkit-overflow-scrolling', '');
@@ -723,6 +724,33 @@
         onNow(true);
       }
       
+      function onSong(id_low, id_high) {
+        itunes.playTrack(id_low, id_high);
+
+        if(!state.state)
+          onNow(true);
+        else
+          showMessage('Track queued');
+      }
+
+      function showMessage(txt) {
+
+        if(msgHideTimeout) {
+          clearTimeout(msgHideTimeout);
+          msgHideTimeout = null;
+        }
+
+        $('#divMessage').css({"top":"-130px"});
+
+        $('#spanMessage').html(txt);
+        $('#divMessage').animate({"top":"0px"});
+
+        msgHideTimeout = setTimeout(function() {
+          msgHideTimeout = null;
+          $('#divMessage').animate({"top":"-130px"});
+        }, 3000);
+      }
+
       function playerBack(e, touched) {
         if(touchScreen && !touched)
           return;
@@ -1009,6 +1037,26 @@
         e.preventDefault();
       }
       
+      function onMainSongs(e, touched) {
+        if(touchScreen && !touched)
+          return;
+        
+        if($('#tabSongs').css('display') != 'none') {
+          $('#inputSearchSongs').val('').focus();
+          $("#tableSongs tr").remove();          
+        } else {
+          resetMainMenu();
+          $('#imgMainSongs').attr('src', 'img/song_active.png');
+          $('#tabSongs').css('display', '');
+          
+          if($('#inputSearchSongs').val() == '')
+            $('#inputSearchSongs').focus();
+        } 
+        
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      }
+      
       function onKeySearchArtist(e) {
         var val = $('#inputSearchArtists').val();
         
@@ -1018,6 +1066,17 @@
         }
           
         itunes.search(2, val);
+      }
+      
+      function onKeySearchSong(e) {
+        var val = $('#inputSearchSongs').val();
+        
+        if(val.length < 3) {
+          $("#tableSongs tr").remove();
+          return;
+        }
+          
+        itunes.search(5, val);
       }
       
       socket.on('searchResult', function(msg) {
@@ -1047,6 +1106,30 @@
         }
       }
 
+      function searchResultSongs(tracks) {
+        var $table = $('#tableSongs');
+        
+        $("#tableSongs tr").remove();
+        
+        for(var i=0; i<tracks.length; i++) {
+          var tr = tracks[i];
+
+          var rating = "";
+          
+          for(r=0; r<tr.rating; r+=20)
+            rating+='&#x2605';
+          
+          var duration = formatTime(tr.duration);
+
+          if(tr.kind == 3)  // radio
+            $table.append('<tr class="trTrack" style="border-bottom:4px solid #000;" onClick="onSong('+tr.id_low+', '+tr.id_high+')"><td class="tdTrackNumber"><img style="width:200px;" src="thumbs/cover~'+tr.id_low+'~'+tr.id_high+'~'+ tr.name + '~no_artist~false~0~'+tr.kind+'~.png"></td><td class="tdTrackInfo"><span class="tdTrackName">'+tr.name+'</span><br>'+rating+'</td><td class="tdTrackInfo"><div class="divAlbumTrackPlay_'+tr.id_low+'_'+tr.id_high+'"><img src="img/playing.png"></div></td></tr>');
+          else
+            $table.append('<tr class="trTrack" style="border-bottom:4px solid #000;" onClick="onSong('+tr.id_low+', '+tr.id_high+')"><td class="tdTrackNumber"><img style="width:200px;" src="thumbs/cover~'+tr.id_low+'~'+tr.id_high+'~'+ tr.album +'~'+tr.artist+'~'+tr.compilation+'~'+tr.trackCount+'~'+tr.kind+'~.png"></td><td class="tdTrackInfo"><span class="tdTrackName">'+tr.name+'</span><br><span class="tdTrackAlbum">'+tr.album+' - '+tr.artist+'</span><br>'+duration+' '+rating+'</td><td class="tdTrackInfo"><div class="divAlbumTrackPlay_'+tr.id_low+'_'+tr.id_high+'"><img src="img/playing.png"></div></td></tr>');
+          }
+
+        markPlayingTrack();          
+      }
+
       function onArtist(id_low, id_high, name) {
         artist = name;
         
@@ -1073,7 +1156,7 @@
           for(r=0; r<al.rating; r+=20) 
             rating+='&#x2605';
 
-          var $tr = $('<tr class="trTrack" style="border-bottom:4px solid #000;"><td class="tdTrackNumber"><img style="width:200px;" src="thumbs/cover~'+al.id_low+'~'+al.id_high+'~'+al.name+'~'+al.artist+'~'+al.compilation+'~'+al.trackCount+'~0~.png"></td><td class="tdTrackInfo"><span class="tdTrackName">'+al.name+'</span><br><span class="tdTrackAlbum">'+al.year+'</span> '+rating+'</td></tr>');                      
+          var $tr = $('<tr class="trTrack" style="border-bottom:4px solid #000;"><td class="tdTrackNumber"><img style="width:200px;" src="thumbs/cover~'+al.id_low+'~'+al.id_high+'~'+al.name+'~'+al.artist+'~'+al.compilation+'~'+al.trackCount+'~0~.png"></td><td class="tdTrackInfo"><span class="tdTrackName">'+al.name+'</span><br><span class="tdTrackAlbum">'+al.year+'</span> '+rating+'</td></tr>');
           
           (function() {
             var al_ = al;
@@ -1226,12 +1309,33 @@
         </div>
       </div>
       
+      <!-- song page -->
+      <div id="tabSongs" style="position:absolute; left:0px; top:0px; width:100vw; bottom:150px; display:none;">
+      
+        <div style="position:absolute; left:0px; top:0px; right:0px; height:150px;">
+          <table style="width:100%; height:150px; border-bottom:4px solid #555;" cellspacing=0><tr>
+            <td style="width:200px;"></td>
+            <td style="text-align:center; font-size:60px; font-weight:bold;" id="tdSongTitle">Songs</td>
+            <td class="tdNow"  style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="onNow(true)" onClick="onNow()">Now</td>
+          </tr></table>
+        </div>
+      
+        <div id="divSongs" style="position:absolute; left:0px; top:150px; width:100vw; bottom:0px;">
+          <div style="position:absolute; left:0px; right:0px; top:0px; height:110px;">
+            <input type="text" id="inputSearchSongs" class="inputSearch" onKeyUp="onKeySearchSong(event)"></input>
+          </div>
+          <div  class="scrollable" style="position:absolute; left:0px; top:112px; width:100vw; bottom:0px; overflow:scroll; -webkit-overflow-scrolling:touch;">
+             <table id="tableSongs" cellspacing=0 style="width:100%;">             
+             </table>            
+          </div>
+        </div>
+      </div>
+
       <!-- main menu -->
       <div style="position:absolute; left:0px; right:0px; bottom:0px; height:170px; background:#EEE;">
         <table cellspacing=0 style="width:100%; height:150px; border-top:4px solid #555;"><tr>
           <td style="text-align:center;" onTouchStart="onMainPlaylists(event, true)" onClick="onMainPlaylists(event)"><img id="imgMainPlaylists" src="img/playlist_active.png"></td>
           <td style="text-align:center;" onTouchStart="onMainArtists(event, true)" onClick="onMainArtists(event)"><img id="imgMainArtists" src="img/interpret.png"></td>
-          <td style="text-align:center;" onTouchStart="onMainAlbums(event, true)" onClick="onMainAlbums(event)"><img id="imgMainAlbums" src="img/album.png"></td>
           <td style="text-align:center;" onTouchStart="onMainSongs(event, true)" onClick="onMainSongs(event)"><img id="imgMainSongs" src="img/song.png"></td>
           <td style="text-align:center;" onTouchStart="onMainComposers(event, true)" onClick="onMainComposers(event)"><img id="imgMainComposers" src="img/composer.png"></td>
         </tr></table>
@@ -1377,6 +1481,11 @@
         <table id="tableTracksPlaylists" cellspacing=0 style="width:100%; padding-bottom:60px;">
         </table>
       </div>
+    </div>
+
+    <!-- message -->
+    <div id="divMessage" class="vertOnly message">
+      <span id="spanMessage">Track queued</span>
     </div>
 
     <!-- no track page -->

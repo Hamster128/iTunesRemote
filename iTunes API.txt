@@ -83,6 +83,53 @@ VisualSize                         Property              ITVisualSize VisualSize
 Windows                            Property              IITWindowCollection Windows () {get}         
 
 
+$itunes.Sources[1] | Get-member
+Name            MemberType Definition                               
+----            ---------- ----------                               
+GetITObjectIDs  Method     void GetITObjectIDs (int, int, int, int) 
+Capacity        Property   double Capacity () {get}                 
+FreeSpace       Property   double FreeSpace () {get}                
+Index           Property   int Index () {get}                       
+Kind            Property   ITSourceKind Kind () {get}               
+Name            Property   string Name () {get} {set}               
+playlistID      Property   int playlistID () {get}                  
+Playlists       Property   IITPlaylistCollection Playlists () {get} 
+sourceID        Property   int sourceID () {get}                    
+TrackDatabaseID Property   int TrackDatabaseID () {get}             
+trackID         Property   int trackID () {get}            
+
+
+
+$itunes.LibraryPlaylist | Get-member
+Name            MemberType Definition                                               
+----            ---------- ----------                                               
+AddFile         Method     IITOperationStatus AddFile (string)                      
+AddFiles        Method     IITOperationStatus AddFiles (Variant)                    
+AddTrack        Method     IITTrack AddTrack (Variant)                              
+AddURL          Method     IITURLTrack AddURL (string)                              
+Delete          Method     void Delete ()                                           
+GetITObjectIDs  Method     void GetITObjectIDs (int, int, int, int)                 
+PlayFirstTrack  Method     void PlayFirstTrack ()                                   
+Print           Method     void Print (bool, ITPlaylistPrintKind, string)           
+Search          Method     IITTrackCollection Search (string, ITPlaylistSearchField)
+Duration        Property   int Duration () {get}                                    
+Index           Property   int Index () {get}                                       
+Kind            Property   ITPlaylistKind Kind () {get}                             
+Name            Property   string Name () {get} {set}                               
+playlistID      Property   int playlistID () {get}                                  
+Shuffle         Property   bool Shuffle () {get} {set}                              
+Size            Property   double Size () {get}                                     
+SongRepeat      Property   ITPlaylistRepeatMode SongRepeat () {get} {set}           
+Source          Property   IITSource Source () {get}                                
+sourceID        Property   int sourceID () {get}                                    
+Time            Property   string Time () {get}                                     
+TrackDatabaseID Property   int TrackDatabaseID () {get}                             
+trackID         Property   int trackID () {get}                                     
+Tracks          Property   IITTrackCollection Tracks () {get}                       
+Visible         Property   bool Visible () {get}               
+
+
+
 $itunes.CurrentPlaylist | Get-member
 
 Name            MemberType Definition                                               

@@ -14,12 +14,17 @@ var queue = [],
 var whenQueueIsEmpty = undefined;
 
 let executeScript = function(scriptName, cb) {
+
+	console.log('execute', scriptName);
+
 	exec(execCmd + scriptName, script_options, function(err, stdout, stderr) {
 		if (err) {
+			console.log('script error', scriptName, err);
 			cb(err, '', '');
 			return;
 		}
 
+		console.log('script done', scriptName, stdout.toString(), stderr.toString());
 		cb(null, stdout, '');
 	});
 };
@@ -153,6 +158,18 @@ let doNextInQueue = function() {
 			queueActive = false;
 			doNextInQueue();
 		});
+	} else if (job.func == 'idxInQueue') {
+		executeScriptRes('idxInQueue.js ' + job.id_low + ' ' + job.id_high, function(err, stdout, stderr) {
+			if (err) console.log('itunes.idxInQueue error', err);
+
+			if (job.cb) {
+				var str = iconv.decode(stdout, 'utf16');
+				job.cb(JSON.parse(str));
+			}
+
+			queueActive = false;
+			doNextInQueue();
+		});
 	} else if (job.func == 'getArtwork') {
 		executeScriptRes('getArtwork.js ' + job.id_low + ' ' + job.id_high, function(err, stdout, stderr) {
 			if (err) console.log('itunes.getArtwork error', err);
@@ -217,9 +234,27 @@ let doNextInQueue = function() {
 			queueActive = false;
 			doNextInQueue();
 		});
+	} else if (job.func == 'playTrack') {
+		executeScript('playTrack.js ' + job.id.id_low + ' ' + job.id.id_high, function(err, stdout, stderr) {
+			if (err) console.log('itunes.playTrack error ', err);
+
+			if (job.cb) job.cb();
+
+			queueActive = false;
+			doNextInQueue();
+		});
 	} else if (job.func == 'playAlbumFrom') {
 		executeScript('playAlbumFrom.js ' + job.id.id_low + ' ' + job.id.id_high, function(err, stdout, stderr) {
 			if (err) console.log('itunes.playAlbumFrom error ', err);
+
+			if (job.cb) job.cb();
+
+			queueActive = false;
+			doNextInQueue();
+		});
+	} else if (job.func == 'playQueueFrom') {
+		executeScript('playQueueFrom.js ' + job.idx, function(err, stdout, stderr) {
+			if (err) console.log('itunes.playQueueFrom error ', err);
 
 			if (job.cb) job.cb();
 
@@ -434,6 +469,13 @@ exports.currentArtwork = function(cb) {
 	doNextInQueue();
 };
 
+exports.idxInQueue = async function(track) {
+	return new Promise(function(resolve) {
+		queue.push({ func: 'idxInQueue', id_low: track.id_low, id_high: track.id_high, cb: resolve });
+		doNextInQueue();
+	});
+}
+
 exports.getArtwork = function(id_low, id_high, cb) {
 	queue.push({ func: 'getArtwork', cb: cb, id_low: id_low, id_high: id_high });
 	doNextInQueue();
@@ -469,6 +511,11 @@ exports.playAlbumFrom = function(id, cb) {
 	doNextInQueue();
 };
 
+exports.playQueueFrom = function(idx, cb) {
+	queue.push({ func: 'playQueueFrom', cb: cb, idx: idx });
+	doNextInQueue();
+};
+
 exports.playLists = function(cb) {
 	queue.push({ func: 'playLists', cb: cb });
 	doNextInQueue();
@@ -491,6 +538,11 @@ exports.search = function(type, val, cb) {
 
 exports.playTrackInList = function(id, cb) {
 	queue.push({ func: 'playTrackInList', cb: cb, id: id });
+	doNextInQueue();
+};
+
+exports.playTrack = function(id, cb) {
+	queue.push({ func: 'playTrack', cb: cb, id: id });
 	doNextInQueue();
 };
 

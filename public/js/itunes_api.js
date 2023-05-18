@@ -40,6 +40,10 @@ itunes.albumTracks = function(track, ref) {
     socket.emit('albumTracks', {"track":track, "ref":ref});
   };
   
+itunes.playQueueFrom = function(idx) {
+  socket.emit('playQueueFrom', {"idx":idx});
+};
+  
 itunes.playAlbumFrom = function(id_low, id_high) {
     socket.emit('playAlbumFrom', {"id_low":id_low, "id_high":id_high});
   };
@@ -55,6 +59,10 @@ itunes.playlistTracks = function(id_low, id_high, skip, mode, sortOrder) {
 itunes.playTrackInList = function(id_low, id_high, idx, sortOrder) {
     socket.emit('playTackInList', {"id_low":id_low, "id_high":id_high, "idx":idx, "sortOrder":sortOrder});
   };
+
+itunes.playTrack = function(id_low, id_high) {
+  socket.emit('playTrack', {"id_low":id_low, "id_high":id_high});
+};
 
 itunes.setRating = function(id_low, id_high, rating) {
     socket.emit('setRating', {"id_low":id_low, "id_high":id_high, "rating":rating});
@@ -72,6 +80,10 @@ itunes.addTrackToList = function(msg) {
     socket.emit('addTrackToList', msg);
   };
   
+// 2...Artist / Album Artist
+// 3...Album
+// 4...Composer
+// 5...Name
 itunes.search = function(type, val) {
     socket.emit('search', {type:type, val:val});
   };

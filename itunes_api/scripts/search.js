@@ -54,8 +54,19 @@ for(var i = 1; i <= tracks.Count; i++) {
   
   var entry = {
     "name":Value,
+    "album":track.Album,
+    "artist":track.Artist,
+    "albumArtist":track.AlbumArtist,
+    "composer":track.Composer,
     "id_low":iTunesApp.ITObjectPersistentIDLow(track),
-    "id_high":iTunesApp.ITObjectPersistentIDHigh(track)
+    "id_high":iTunesApp.ITObjectPersistentIDHigh(track),
+    "trackNumber":track.TrackNumber,
+    "bitRate":track.BitRate,
+    "duration":track.Duration,
+    "rating":track.Rating,
+    "sampleRate":track.SampleRate,
+    "comment":track.Comment,
+    "year":track.Year
   };  
     
   Elements.push(entry);

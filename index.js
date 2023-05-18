@@ -32,6 +32,7 @@ var audioDevicePresentTimer = 0;
 var audioDeviceCheckInterval = 500;
 var continueAfterMute = false;
 var iTunesEnabled = true;
+var lastTrack;
 
 app.use(express.static(__dirname + '/public'));
 
@@ -198,7 +199,7 @@ io.on('connection', function(socket){
       return;
       
     if(state.volumeDigits) {
-      let db = (msg.newVolume - 100) * 0.4; // -40 - +0
+      let db = (msg.newVolume - 80) / 2; // -40 - +10
       db = Math.floor(db * 2) / 2;  // round to 0.5
       devialet.vol(db);
   } else {
@@ -228,7 +229,32 @@ io.on('connection', function(socket){
       socket.emit('albumTracks', {"tracks":tracks, "ref":msg.ref});
     });
   });
-  
+
+  socket.on('playTrack', function(msg){
+    if(!iTunesEnabled)
+      return;
+      
+    clearTimeout(getStateTimer);
+    getStateTimer = 0;
+    itunes.playTrack(msg, function(){
+      getStateTimer = 1;
+      track.name = undefined;   // force sending track.queueInfo
+      getState();
+    });
+  });
+   
+  socket.on('playQueueFrom', function(msg){
+    if(!iTunesEnabled)
+      return;
+      
+    clearTimeout(getStateTimer);
+    getStateTimer = 0;
+    itunes.playQueueFrom(msg.idx, function(){
+      getStateTimer = 1;
+      getState();
+    });
+  });
+
   socket.on('playAlbumFrom', function(msg){
     if(!iTunesEnabled)
       return;
@@ -390,7 +416,7 @@ http.on('listening', function() {
 http.listen(port);
 
 function setDevialetInfo() {
-  state.volume = devialetVol / 0.4 + 100;  // -40 - +0
+  state.volume = devialetVol * 2 + 80;  // -40 - +10
   
   if(state.volume < 0)
     state.volume = 0;
@@ -482,7 +508,7 @@ function getState() {
       return;
     }
 
-    itunes.currentTrack(function(rsp){
+    itunes.currentTrack(async function(rsp){
 
       if(!getStateTimer)
         return;
@@ -529,6 +555,23 @@ function getState() {
                           
           is.pipe(os);
         } else {
+
+          if(!track.name) {
+
+            // player stopped, check if there were some tracks added to the queue while playing
+            if(lastTrack && lastTrack['queueInfo'] && lastTrack.queueInfo.idx < lastTrack.queueInfo.count) {
+              itunes.playQueueFrom(lastTrack.queueInfo.idx + 1, function() {
+                getStateTimer = 1;
+                getState();
+              });
+              return;
+            }
+          } 
+
+          lastTrack = track;
+
+          track.queueInfo = await itunes.idxInQueue(track);
+
           itunes.currentArtwork(function(resp){
           
             if(!getStateTimer)
