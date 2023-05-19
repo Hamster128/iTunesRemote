@@ -730,6 +730,7 @@ function checkAudioDevice() {
       systemRequired(false);
 
       var newState = -1;
+      lastTrack = null;
       
       if(found == -1)  // wrong source selected on audio device
         newState = 0;

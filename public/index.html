@@ -159,8 +159,14 @@
         console.log('reconnect_attempt');
       });
 
+      socket.on('connect', function() {
+        itunes.playLists();
+        console.log('connect');
+      });
+
       socket.on('reconnect', function(attempt) {
         $('#divOffline').hide();
+        itunes.playLists();
         console.log('reconnect '+attempt);
       });
 
@@ -180,6 +186,10 @@
            actAudioDeviceMute    == msg.mute)
           return;
           
+        if(msg.state == 2 && actAudioDevicePresent !=2) {
+          itunes.playLists();
+        }
+
         actAudioDevicePresent = msg.state;
         actAudioDeviceSource  = msg.source;
         
@@ -1127,6 +1137,14 @@
             $table.append('<tr class="trTrack" style="border-bottom:4px solid #000;" onClick="onSong('+tr.id_low+', '+tr.id_high+')"><td class="tdTrackNumber"><img style="width:200px;" src="thumbs/cover~'+tr.id_low+'~'+tr.id_high+'~'+ tr.album +'~'+tr.artist+'~'+tr.compilation+'~'+tr.trackCount+'~'+tr.kind+'~.png"></td><td class="tdTrackInfo"><span class="tdTrackName">'+tr.name+'</span><br><span class="tdTrackAlbum">'+tr.album+' - '+tr.artist+'</span><br>'+duration+' '+rating+'</td><td class="tdTrackInfo"><div class="divAlbumTrackPlay_'+tr.id_low+'_'+tr.id_high+'"><img src="img/playing.png"></div></td></tr>');
           }
 
+        // bug fix iOS 11.1.1 did often not scroll
+        $('#divPlaylist').css('-webkit-overflow-scrolling', '');
+        
+        setTimeout(function()
+          {
+          $('#divPlaylist').css('-webkit-overflow-scrolling', 'touch');
+          }, 10);
+
         markPlayingTrack();          
       }
 
@@ -1251,7 +1269,7 @@
 
     <div id="divMain" class="vertOnly" style="width:100vw; height:100vh; position:absolute; background:#EEE;">
       <!-- play lists page -->
-      <div id="tabPlaylists" style="position:absolute; left:0px; top:0px; width:100vw; bottom:150px;">
+      <div id="tabPlaylists" style="position:absolute; left:0px; top:0px; width:100vw; bottom:200px;">
       
         <div style="position:absolute; left:0px; top:0px; right:0px; height:150px;">
           <table style="width:100%; height:150px; border-bottom:4px solid #555;" cellspacing=0><tr>
@@ -1278,7 +1296,7 @@
       </div>
     
       <!-- artist page -->
-      <div id="tabArtists" style="position:absolute; left:0px; top:0px; width:100vw; bottom:150px; display:none;">
+      <div id="tabArtists" style="position:absolute; left:0px; top:0px; width:100vw; bottom:200px; display:none;">
       
         <div style="position:absolute; left:0px; top:0px; right:0px; height:150px;">
           <table style="width:100%; height:150px; border-bottom:4px solid #555;" cellspacing=0><tr>
@@ -1310,7 +1328,7 @@
       </div>
       
       <!-- song page -->
-      <div id="tabSongs" style="position:absolute; left:0px; top:0px; width:100vw; bottom:150px; display:none;">
+      <div id="tabSongs" style="position:absolute; left:0px; top:0px; width:100vw; bottom:200px; display:none;">
       
         <div style="position:absolute; left:0px; top:0px; right:0px; height:150px;">
           <table style="width:100%; height:150px; border-bottom:4px solid #555;" cellspacing=0><tr>
@@ -1332,7 +1350,7 @@
       </div>
 
       <!-- main menu -->
-      <div style="position:absolute; left:0px; right:0px; bottom:0px; height:170px; background:#EEE;">
+      <div style="position:absolute; left:0px; right:0px; bottom:0px; height:200px; background:#EEE;">
         <table cellspacing=0 style="width:100%; height:150px; border-top:4px solid #555;"><tr>
           <td style="text-align:center;" onTouchStart="onMainPlaylists(event, true)" onClick="onMainPlaylists(event)"><img id="imgMainPlaylists" src="img/playlist_active.png"></td>
           <td style="text-align:center;" onTouchStart="onMainArtists(event, true)" onClick="onMainArtists(event)"><img id="imgMainArtists" src="img/interpret.png"></td>
