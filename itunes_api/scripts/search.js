@@ -48,8 +48,8 @@ for(var i = 1; i <= tracks.Count; i++) {
   
   if(Value.toLowerCase().indexOf(searchFor) == -1)
     continue;
-  
-  if(idx.hasOwnProperty(Value))
+
+  if(type == '2' && idx.hasOwnProperty(Value))
     continue;
   
   var entry = {

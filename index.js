@@ -285,7 +285,9 @@ io.on('connection', function(socket){
     });
   });
   
-  socket.on('playTackInList', function(msg){
+  socket.on('playTrackInList', function(msg){
+    console.log("on playTrackInList", msg);
+
     if(!iTunesEnabled)
       return;
       

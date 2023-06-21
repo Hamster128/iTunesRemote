@@ -57,7 +57,7 @@ itunes.playlistTracks = function(id_low, id_high, skip, mode, sortOrder) {
   };
 
 itunes.playTrackInList = function(id_low, id_high, idx, sortOrder) {
-    socket.emit('playTackInList', {"id_low":id_low, "id_high":id_high, "idx":idx, "sortOrder":sortOrder});
+    socket.emit('playTrackInList', {"id_low":id_low, "id_high":id_high, "idx":idx, "sortOrder":sortOrder});
   };
 
 itunes.playTrack = function(id_low, id_high) {

@@ -61,9 +61,12 @@ while(num_sources) {
 
 	  if(pl) {
 	    if(idx == -1) {
+				pl.Shuffle = true;
    	    pl.PlayFirstTrack();
 	      break;
-	    }
+	    } else {
+				pl.Shuffle = false;
+			}
 	  
       var tmpl = findPlayList("zRemotePro");
 

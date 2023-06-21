@@ -3,6 +3,7 @@ const crc16ccitt = require('crc/crc16ccitt');
 const server = dgram.createSocket('udp4');
 const client = dgram.createSocket('udp4');
 const fs = require('fs');
+const crc = require('crc');
 
 const STATUS_PORT = 45454;
 const CMD_PORT = 45455;
@@ -237,6 +238,25 @@ module.exports = {
     if(msg == 'status') {
       onStatus = func;
     }
+  },
+
+  //--------------------------------------------------------------
+  calcConfigFilesCRC(fileName) {
+
+    // read config file
+    let cfg = fs.readFileSync(fileName);
+
+    // remove first line but keep CRLF
+    let data = cfg.slice(7);
+
+    // calc CRC
+    let crc16 = crc.crc16ccitt(data).toString(16).toUpperCase();
+
+    // insert new CRC into buffer
+    cfg.write(crc16, 3);
+
+    // write fixed file to disk
+    fs.writeFileSync(fileName, cfg);
   }
 
 }

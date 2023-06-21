@@ -19,7 +19,298 @@
     <script src="js/jquery-3.3.1.min.js"></script>
     <script src="js/itunes_api.js"></script>
     
+    <div id="divMain" class="vertOnly" style="width:100vw; height:100vh; position:absolute; background:#EEE;">
+      <!-- play lists page -->
+      <div id="tabPlaylists" style="position:absolute; left:0px; top:0px; width:100vw; bottom:200px;">
+      
+        <div style="position:absolute; left:0px; top:0px; right:0px; height:150px;">
+          <table style="width:100%; height:150px; border-bottom:4px solid #555;" cellspacing=0><tr>
+            <td style="width:200px;" onTouchStart="onPlaylistsBack(true)" onClick="onPlaylistsBack()"><img id="imgPlaylistsBack" style="visibility:hidden;" src="img/back.png"</td>
+            <td style="text-align:center; font-size:60px; font-weight:bold;" id="tdPlaylistsTitle">Playlists</td>
+            <td class="tdNow" style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="onNow(true)" onClick="onNow()">Now</td>
+          </tr></table>
+        </div>
+      
+        <div id="divPlaylists" class="scrollable" style="position:absolute; left:0px; top:150px; width:100vw; bottom:0px; overflow:scroll; -webkit-overflow-scrolling:touch;">
+          <table id="tablePlaylists" cellspacing=0 style="width:100%;">
+          </table>
+        </div>
+        
+        <div id="divPlaylist" class="scrollable" style="position:absolute; left:100vw; top:150px; width:100vw; bottom:0px; overflow:scroll; -webkit-overflow-scrolling:touch;">
+          <table id="tablePlaylist" cellspacing=0 style="width:100%;">
+          </table>
+        </div>
+        
+        <div id="divPlaylistAlbum" class="scrollable" style="position:absolute; left:100vw; top:150px; width:100vw; bottom:0px; overflow:scroll; -webkit-overflow-scrolling:touch;">
+          <table id="tablePlaylistAlbum" cellspacing=0 style="width:100%;">
+          </table>
+        </div>
+      </div>
+    
+      <!-- artist page -->
+      <div id="tabArtists" style="position:absolute; left:0px; top:0px; width:100vw; bottom:200px; display:none;">
+      
+        <div style="position:absolute; left:0px; top:0px; right:0px; height:150px;">
+          <table style="width:100%; height:150px; border-bottom:4px solid #555;" cellspacing=0><tr>
+            <td style="width:200px;" onTouchStart="onArtistsBack(true)" onClick="onArtistsBack()"><img id="imgArtistsBack" style="visibility:hidden;" src="img/back.png"</td>
+            <td style="text-align:center; font-size:60px; font-weight:bold;" id="tdArtistsTitle">Artists</td>
+            <td class="tdNow"  style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="onNow(true)" onClick="onNow()">Now</td>
+          </tr></table>
+        </div>
+      
+        <div id="divArtists" style="position:absolute; left:0px; top:150px; width:100vw; bottom:0px;">
+          <div style="position:absolute; left:0px; right:0px; top:0px; height:110px;">
+            <input type="text" id="inputSearchArtists" class="inputSearch" onKeyUp="onKeySearchArtist(event)"></input>
+          </div>
+          <div  class="scrollable" style="position:absolute; left:0px; top:112px; width:100vw; bottom:0px; overflow:scroll; -webkit-overflow-scrolling:touch;">
+             <table id="tableArtists" cellspacing=0 style="width:100%;">             
+             </table>            
+          </div>
+        </div>
+        
+        <div id="divArtistAlbums" class="scrollable" style="position:absolute; left:100vw; top:150px; width:100vw; bottom:0px; overflow:scroll; -webkit-overflow-scrolling:touch;">
+          <table id="tableArtistAlbums" cellspacing=0 style="width:100%;">
+          </table>
+        </div>
+        
+        <div id="divArtistAlbum" class="scrollable" style="position:absolute; left:100vw; top:150px; width:100vw; bottom:0px; overflow:scroll; -webkit-overflow-scrolling:touch;">
+          <table id="tableArtistAlbum" cellspacing=0 style="width:100%;">
+          </table>
+        </div>
+      </div>
+      
+      <!-- song page -->
+      <div id="tabSongs" style="position:absolute; left:0px; top:0px; width:100vw; bottom:200px; display:none;">
+      
+        <div style="position:absolute; left:0px; top:0px; right:0px; height:150px;">
+          <table style="width:100%; height:150px; border-bottom:4px solid #555;" cellspacing=0><tr>
+            <td style="width:200px;"></td>
+            <td style="text-align:center; font-size:60px; font-weight:bold;" id="tdSongTitle">Songs</td>
+            <td class="tdNow"  style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="onNow(true)" onClick="onNow()">Now</td>
+          </tr></table>
+        </div>
+      
+        <div id="divSongs" style="position:absolute; left:0px; top:150px; width:100vw; bottom:0px;">
+          <div style="position:absolute; left:0px; right:0px; top:0px; height:110px;">
+            <input type="text" id="inputSearchSongs" class="inputSearch" onKeyUp="onKeySearchSong(event)"></input>
+          </div>
+          <div  class="scrollable" style="position:absolute; left:0px; top:112px; width:100vw; bottom:0px; overflow:scroll; -webkit-overflow-scrolling:touch;">
+             <table id="tableSongs" cellspacing=0 style="width:100%;">             
+             </table>            
+          </div>
+        </div>
+      </div>
+
+      <!-- main menu -->
+      <div style="position:absolute; left:0px; right:0px; bottom:0px; height:200px; background:#EEE;">
+        <table cellspacing=0 style="width:100%; height:150px; border-top:4px solid #555;"><tr>
+          <td style="text-align:center;" onTouchStart="onMainPlaylists(event, true)" onClick="onMainPlaylists(event)"><img id="imgMainPlaylists" src="img/playlist_active.png"></td>
+          <td style="text-align:center;" onTouchStart="onMainArtists(event, true)" onClick="onMainArtists(event)"><img id="imgMainArtists" src="img/interpret.png"></td>
+          <td style="text-align:center;" onTouchStart="onMainSongs(event, true)" onClick="onMainSongs(event)"><img id="imgMainSongs" src="img/song.png"></td>
+          <td style="text-align:center;" onTouchStart="onMainComposers(event, true)" onClick="onMainComposers(event)"><img id="imgMainComposers" src="img/composer.png"></td>
+        </tr></table>
+      </div>
+    </div>
+
+    <!-- player page -->
+    <div id="divPlayer" class="divPlayerPage pageWidth" style="height:100vh; position:absolute;">
+      <div id="divVolumeDigitsOverlay" class="pageWidth" style="display:none; z-index:2; height:100%; position:absolute; font-size:170px; background:rgba(0,0,0,.7); color:#FFF; text-align:center; padding-top:500px;">
+       24.0 dB
+      </div>
+    
+      <div class="artworkWidth" style="height:100%; position:absolute; overflow:hidden; text-align:center;">
+        <img id="artwork" src="img/current.png" class="imgArtwork "style="position:relative;">
+      </div>
+      
+      <div class="pageWidth" style="position:absolute; z-index:1; height:100%;">
+        <table class="pageWidth" style="height:100%;" cellspacing=0 cellpadding=0>
+          <tr class="dark_background" style="height:130px;"><td>
+            <table style="width:100%">
+              <tr>
+                <td class="vertOnly" style="vertical-align:top; padding-top:30px;" onTouchStart="playerBack(event, true)" onClick="playerBack(event)"><img src="img/back_w.png"></td>
+                <td style="text-align:center; color:#FFF;" onTouchStart="playerBack(event, true)" onClick="playerBack(event)">
+                  <span id='track' class="track_title" style="font-weight:bold;"></span><br>
+                  <span id='album_artist' class="artist_album_title"></span>
+                </td>
+                <td class="vertOnly" onTouchStart="onDSP(true)" onClick="onDSP()"><img id="imgDSP" src="img/dsp_off.png" ></td>
+            </table>
+          </td></tr>
+          
+          <!-- track info oerlay -->
+          <tr><td style="">
+            <div id="divTrackInfo" class="vertOnly" style="width:100%; height:100%; background:rgba(0,0,0,.7); color:#FFF; opacity:0;" onTouchStart="onTrackInfo(event, true)" onClick="onTrackInfo(event)">
+              <table style="width:80%; margin:0 auto; font-size:50px;">
+                <tr style="height:80px;"><td></td></tr>
+                <tr><td id="trackRating" style="text-align:center; font-size:120px;"></td></tr>
+                <tr><td id="trackQuality"></td></tr>
+                <tr><td id="trackBitRate"></td></tr>
+                <tr><td id="trackSampleRate"></td></tr>
+                <tr><td>Played Count: <span id="trackPlayedCount"></span></td></tr>
+                <tr><td id="trackComposer"></td></tr>
+                <tr><td id="trackComment"></td></tr>
+              </table>
+            </div>
+          </td></tr>
+          
+          <!-- player position -->
+          <tr class="dark_background trPlayerPosition"><td style="text-align:center;">
+            <table id="tablePosition" style="width:100%; height:100%;">
+              <tr>
+                <td class="player_position_time player_pos_left" style="text-align:right; color:#FFF; font-family:Arial; padding-right:20px;" id="tdAt">0</td>
+                <td style="text-align:center;" onMouseDown="onPosition(false, event)" onTouchStart="onPosition(true, event)" onMouseMove="onPositionMove(false, event)" onTouchMove="onPositionMove(true, event)" id="tdBar">
+                  <div class="progressBar" style="width:100%; border:3px solid #FFF;"><div id="divTime" style="background:#FFF; width:0; height:100%"></div></div>
+                </td>
+                <td class="player_position_time player_pos_right" style="text-align:left; color:#FFF; font-family:Arial; padding-left:20px;" id="tdLeft">0</td>
+              </tr>
+            </table>
+          </td></tr>
+          
+          <!-- player main controls -->
+          <tr class="vertOnly" style="height:200px; background-color:rgba(0,0,0,.5);"><td>
+            <table style="width:100%; height:100%">
+              <tr>
+                <td style="text-align:center;" id="tdPrev" onTouchStart="onPrev(true)" onMouseDown="onPrev()" onTouchEnd="endPrev(true)" onMouseUp="endPrev()"><img src="img/prev.png" style="cursor:pointer;"></td>
+                <td style="text-align:center;" id="tdPlay" onTouchStart="onPlay(true)" onMouseDown="onPlay()" onTouchEnd="endPlay(true)" onMouseUp="endPlay()"><img id="btnPlay" src="img/play.png" style="cursor:pointer;"></td>
+                <td style="text-align:center;" id="tdNext" onTouchStart="onNext(true)" onMouseDown="onNext()" onTouchEnd="endNext(true)" onMouseUp="endNext()"><img src="img/next.png" style="cursor:pointer;"></td>
+              </tr>
+            </table>
+          </td></tr>
+          
+          <!-- player volume -->
+          <tr class="vertOnly" style="height:100px; background-color:rgba(0,0,0,.5);"><td>
+            <table style="width:100%; height:100%;">
+              <tr>
+                <td style="width:5%;"></td>
+                <td style="text-align:center;" onMouseDown="onVolume(false, event)" onTouchStart="onVolume(true, event)" onMouseMove="onVolumeMove(false, event)" onTouchMove="onVolumeMove(true, event)" id="tdVolume">
+                  <table cellspacing=0 cellpadding=0 style="width:100%"><tr>
+                    <td style="width:1px;"><div id='divVolumeDigits' style='padding-right:20px; width:100px; color:#FFF; display:none; font-family:Arial; font-size:40px;'>12</div></td>
+                    <td><div style="width:100%; height:30px; border-radius:15px; border:3px solid #FFF; display:inline-block;" id="divVolumeSlider">
+                      <div id="divVolume" style="background:#FFF; border-radius:10px; width:0; height:100%"></div>
+                    </div></td>
+                  </tr></table>
+                </td>
+                <td style="width:5%;"></td>
+              </tr>
+            </table>
+          </td></tr>
+          
+          <!-- player menu -->
+          <tr class="vertOnly" style="height:150px; background-color:rgba(0,0,0,.5);"><td>
+            <table style="width:100%"><tr>
+              <td id="tdAlbum" style="text-align:center;" onTouchStart="onAlbum(event, true)" onClick="onAlbum(event)"><img src="img/album.png"></td>
+              <td style="text-align:center;" onTouchStart="onRepeat(true)" onClick="onRepeat()" id="tdRepeat"><img src="img/repeat.png" id="imgRepeat"></td>
+              <td style="text-align:center;"><img src="img/queue.png"></td>
+              <td style="text-align:center;" onTouchStart="onShuffle(true)" onClick="onShuffle()" id="tdShuffle"><img src="img/shuffle.png"></td>
+              <td style="text-align:center;" onTouchStart="onTracksPlaylists(event, true)" onClick="onTracksPlaylists(event)"><img src="img/list.png"></td>
+            </tr></table>
+          </td></tr>
+          <tr class="vertOnly" style="height:40px;"><td></td></tr>
+        </table>
+      </div>
+    </div>    
+    
+    <div id="divAlbum" class="vertOnly" style="position:absolute; top:100vh; width:100vw; height:100vh; z-index:1; background:#EEE;">
+      <div style="position:absolute; left:0px; top:0px; right:0px; height:490px;">
+        <table style="width:100%; height:150px; border-bottom:4px solid #555;" cellspacing=0><tr>
+          <td style="width:200px; text-align:center;"></td>
+          <td style="text-align:center; font-size:60px; font-weight:bold;">Album</td>
+          <td style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="albumBack(event, true)" onClick="albumBack(event)">Back</td>
+        </tr></table>
+        <table style="width:100%; height:322px;" cellspacing=0 cellpadding=0>
+          <tr><td>
+          </td></tr>
+          <tr onClick="onCurrentAlbum()"><td style="padding:20px; background:#FFF;">
+            <table style="width:100%;"><tr>
+              <td style="width:300px;">
+                <img id="artwork_album" src="img/current.png" style="width:100%">
+              </td>
+              <td style="vertical-align:top; font-size:40px; padding-left:20px;">
+                <span id="albumName" style="font-size:40px; font-weight:bold;"></span><br>
+                Artist:&nbsp;<span id="albumArtist" ></span><br>
+                Year:&nbsp;<span id="albumYear"></span>
+              </td>
+            </tr></table>
+          </td></tr>
+        </table>
+      </div>
+      <div id="divAlbumTracklist" class="scrollable" style="position:absolute; left:0px; top:490px; right:0px; bottom:0px; overflow:scroll; -webkit-overflow-scrolling:touch;">
+        <table id="tableAlbumTracks" cellspacing=0 style="width:100%; padding-bottom:60px;">
+        </table>
+      </div>
+    </div>
+
+    <div id="divTracksPlaylists" class="vertOnly" style="position:absolute; top:100vh; width:100vw; height:100vh; z-index:1; background:#EEE;">
+      <div style="position:absolute; left:0px; top:0px; right:0px; height:150px;">
+        <table style="width:100%; height:150px; border-bottom:4px solid #555;" cellspacing=0><tr>
+          <td style="width:200px;"></td>
+          <td style="text-align:center; font-size:60px; font-weight:bold;">Playlists</td>
+          <td style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="tracksPlaylistsBack(event, true)" onClick="tracksPlaylists(event)">Back</td>
+        </tr></table>
+      </div>
+      <div id="divTracksPlaylistsList" class="scrollable" style="position:absolute; left:0px; top:150px; right:0px; bottom:0px; overflow:scroll; -webkit-overflow-scrolling:touch;">
+        <table id="tableTracksPlaylists" cellspacing=0 style="width:100%; padding-bottom:60px;">
+        </table>
+      </div>
+    </div>
+
+    <!-- message -->
+    <div id="divMessage" class="vertOnly message">
+      <span id="spanMessage">Track queued</span>
+    </div>
+
+    <!-- no track page -->
+    <div id="divNoTrack" class="landscapeOnly darkBackground" style="z-index:3; height:100vh; width:100vw; position:absolute;">
+      <div style="height:100vh; width:100vw; position:absolute;">
+      </div>
+      <div style="height:100vh; width:100vw; position:absolute; color:#FFF;">
+        <img src="img/itunes.png" style="position:absolute; top:0; bottom:0; left:0; right:0; margin:auto;">
+      </div>
+    </div>
+
+    <!-- audio mute page -->
+    <div id="divAudioDeviceMute" class="darkBackground" style="z-index:4; display:none; height:100vh; width:100vw; position:absolute;">
+      <div style="height:100vh; width:100vw; position:absolute;">
+      </div>
+      <div style="height:100vh; width:100vw; position:absolute; color:#FFF;">
+        <img src="img/mute.png" style="position:absolute; top:0; bottom:0; left:0; right:0; margin:auto;">
+      </div>
+    </div>
+    
+    <!-- no audio device page -->
+    <div id="divNoAudioDevice" style="z-index:5; display:none; height:100vh; width:100vw; position:absolute;">
+      <div style="height:100vh; width:100vw; position:absolute; background:#000;">
+      </div>
+      <div style="height:100vh; width:100vw; position:absolute; color:#FFF;">
+        <div style="position:absolute; width:400px; height:290px; top:0; bottom:0; left:0; right:0; margin:auto;">
+          <img id="imgPower" src="img/power_green.png" style="position:absolute; left:0; right:0; margin:auto;">
+          <div id="divDeviceSource" style="position:absolute; height:50px; width:100%; bottom:0px; display:table-cell; text-align: center; font-size:50px;">
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- offline page -->
+    <div id="divOffline" class="landscapeOnly" style="z-index:10; display:none; height:100vh; width:100vw; position:absolute; background:#000;">
+      <div style="height:100vh; width:100vw; position:absolute;">
+      </div>
+      <div style="height:100vh; width:100vw; position:absolute; color:#FFF;">
+        <img src="img/disconnected.png" style="position:absolute; top:0; bottom:0; left:0; right:0; margin:auto;">
+      </div>
+    </div>
+
+    <div id="divDebug" style="z-index:90; pointer-events: none; height:100vh; width:100vw; position:absolute; color:#FF0; font-size: 30px;">
+    </div>
+
     <script>
+      window.onerror = function(err) {
+        console.log(err);
+        debug(err + ' '  + err.stack);
+      }
+
+      function debug(msg) {
+        $('#divDebug').append(`<div style="background:#000;">${msg}</div>`);
+      }
+
       var socket = io();
       var settings = {};
       var state = {state:0, position:0};
@@ -765,7 +1056,6 @@
         if(touchScreen && !touched)
           return;
       
-        itunes.playLists();
         $('#divPlayer').animate({"left":"100vw"});
         playerActive = false;
         
@@ -796,6 +1086,15 @@
           
           $table.append('<tr class="trTrack" style="border-bottom:4px solid #000;" onClick="onPlaylist('+li.id_low+', '+li.id_high+', \''+li.name+'\')"><td class="tdTrackNumber"><img src="img/playlist_'+icon+'.png"></td><td class="tdTrackInfo"><span class="tdTrackName">'+li.name+'</span><br>'+li.count+' Items, '+formatTime(li.duration)+'</td></tr>');
         }
+
+        // load last playlist on startup
+        if($(window).width() < $(window).height()) {
+          var playlistCfg = getCookie("playlist");
+          if(playlistCfg) {
+            onPlaylist(playlistCfg.id_low, playlistCfg.id_high, playlistCfg.name);
+          }
+        }
+
       });
       
       function onNow(touched) {
@@ -807,6 +1106,9 @@
       }
       
       function onPlaylist(id_low, id_high, name) {
+
+        setCookie("playlist", {id_low, id_high, name});
+
         playlist.mode = 0;
         playlist.sortOrder = 0;
         playlist.name = name;
@@ -846,6 +1148,7 @@
           
         if(playlistAlbum) {
           playlistAlbum = null;
+          removeCookie("playlistAlbum");
           
           $('#tdPlaylistsTitle').html(playlist.name).css('font-size', 60);
           
@@ -855,6 +1158,8 @@
           
           $('#divPlaylist').animate({"left":"0"});
         } else {
+          removeCookie("playlist");
+
           $('#tdPlaylistsTitle').html("Playlists");
           $('#imgPlaylistsBack').css('visibility', 'hidden');
           
@@ -976,10 +1281,8 @@
       function onPlaylistTrack(idx) {
       
         if(idx == -1) {
-          itunes.setShuffle(1);
           itunes.playTrackInList(playlist.id_low, playlist.id_high, -1);
         } else {
-          itunes.setShuffle(0);
           itunes.playTrackInList(playlist.id_low, playlist.id_high, idx, playlist.sortOrder);
         }
         onNow(true);
@@ -1017,8 +1320,6 @@
       function onMainPlaylists(touched) {
         if(touchScreen && !touched)
           return;
-        
-        itunes.playLists();
 
         resetMainMenu();
         $('#imgMainPlaylists').attr('src', 'img/playlist_active.png');
@@ -1071,22 +1372,44 @@
         var val = $('#inputSearchArtists').val();
         
         if(val.length < 3) {
+          removeCookie("searchArtist");
           $("#tableArtists tr").remove();
           return;
         }
           
+        setCookie("searchArtist", val);
         itunes.search(2, val);
       }
-      
+
+      // load last artist search string
+      if($(window).width() < $(window).height()) {
+        var searchArtistCfg = getCookie("searchArtist");
+        if(searchArtistCfg) {
+          $('#inputSearchArtists').val(searchArtistCfg);
+          itunes.search(2, searchArtistCfg);
+        }
+      }
+
       function onKeySearchSong(e) {
         var val = $('#inputSearchSongs').val();
         
         if(val.length < 3) {
+          removeCookie("searchSong");
           $("#tableSongs tr").remove();
           return;
         }
           
+        setCookie("searchSong", val);
         itunes.search(5, val);
+      }
+
+      // load last artist search string
+      if($(window).width() < $(window).height()) {
+        var searchSongCfg = getCookie("searchSong");
+        if(searchSongCfg) {
+          $('#inputSearchSongs').val(searchSongCfg);
+          itunes.search(5, searchSongCfg);
+        }
       }
       
       socket.on('searchResult', function(msg) {
@@ -1161,8 +1484,18 @@
         $('#divArtistAlbums').scrollTop(0);
         $('#divArtistAlbums').animate({"left":"0"});
         $('#divArtists').animate({"left":"-100vw"});
+
+        setCookie("artistsAlbums", {id_low, id_high, name});
       }
       
+      // initial load of last selected artist
+      if($(window).width() < $(window).height()) {
+        var artistsAlbumsCfg = getCookie("artistsAlbums");
+        if(artistsAlbumsCfg) {
+          onArtist(artistsAlbumsCfg.id_low, artistsAlbumsCfg.id_high, artistsAlbumsCfg.name);
+        }
+      }
+
       socket.on('artistAlbums', function(albums){
         var $table = $('#tableArtistAlbums');
 
@@ -1192,6 +1525,9 @@
           return;
           
         if(artistAlbum) {
+
+          removeCookie("artistsAlbum");
+
           artistAlbum = null;
           $('#tdArtistsTitle').html(artist);
         
@@ -1200,7 +1536,11 @@
           });
         
           $('#divArtistAlbums').animate({"left":"0"});
+
         } else {
+
+          removeCookie("artistsAlbums");
+
           artist = null;
           $('#tdArtistsTitle').html("Artists").css('font-size', 60);
           $('#imgArtistsBack').css('visibility', 'hidden');
@@ -1216,7 +1556,8 @@
       
       function onArtistAlbum(id_low, id_high, name) {
         artistAlbum = name;
-        
+        setCookie("artistsAlbum", {id_low, id_high, name});
+
         $("#tableArtistAlbum tr").remove();
         
         itunes.albumTracks({"id_low":id_low, "id_high":id_high}, 2);
@@ -1226,9 +1567,18 @@
         $('#divArtistAlbum').animate({"left":"0"});
         $('#divArtistAlbums').animate({"left":"-100vw"});
       }
-      
+
+      // inital load of last selected artists album
+      if($(window).width() < $(window).height()) {
+        var artistsAlbumCfg = getCookie("artistsAlbum");
+        if(artistsAlbumCfg) {
+          onArtistAlbum(artistsAlbumCfg.id_low, artistsAlbumCfg.id_high, artistsAlbumCfg.name);
+        }
+      }
+
       function onPlaylistAlbum(id_low, id_high, name) {
         playlistAlbum = name;
+        setCookie("playlistAlbum", {id_low, id_high, name});
         
         $("#tablePlaylistAlbum tr").remove();
         
@@ -1240,6 +1590,14 @@
         $('#divPlaylist').animate({"left":"-100vw"});
       }
       
+      // initial load of last selected album in playlist
+      if($(window).width() < $(window).height()) {
+        var playlistAlbumCfg = getCookie("playlistAlbum");
+        if(playlistAlbumCfg) {
+          onPlaylistAlbum(playlistAlbumCfg.id_low, playlistAlbumCfg.id_high, playlistAlbumCfg.name);
+        }
+      }
+
       function onCurrentAlbum() {
         if(track.albumArtist != '')  artist = track.albumArtist;
         else                         artist = track.artist;
@@ -1264,288 +1622,45 @@
         $('#inputSearchArtists').val(artist);
         onKeySearchArtist();        
       }  
-    
+
+      function setCookie(name, value) {
+        if(typeof value == 'object') {
+          value = JSON.stringify(value);
+        }
+
+        document.cookie = name + '=' + value;
+      }
+
+      function removeCookie(name) {
+        document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC";
+      }
+
+      function getCookie(cname) {
+        var name = cname + "=";
+        var ca = document.cookie.split(';');
+
+        for(var i = 0; i < ca.length; i++) {
+
+          var c = ca[i];
+          while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+          }
+
+          if (c.indexOf(name) == 0) {
+
+            var value = c.substring(name.length, c.length);
+
+            if(value[0] == '{') {
+              return JSON.parse(value);
+            }
+            
+            return value;
+          }
+        }
+        return null;
+      }
+
     </script>
-
-    <div id="divMain" class="vertOnly" style="width:100vw; height:100vh; position:absolute; background:#EEE;">
-      <!-- play lists page -->
-      <div id="tabPlaylists" style="position:absolute; left:0px; top:0px; width:100vw; bottom:200px;">
-      
-        <div style="position:absolute; left:0px; top:0px; right:0px; height:150px;">
-          <table style="width:100%; height:150px; border-bottom:4px solid #555;" cellspacing=0><tr>
-            <td style="width:200px;" onTouchStart="onPlaylistsBack(true)" onClick="onPlaylistsBack()"><img id="imgPlaylistsBack" style="visibility:hidden;" src="img/back.png"</td>
-            <td style="text-align:center; font-size:60px; font-weight:bold;" id="tdPlaylistsTitle">Playlists</td>
-            <td class="tdNow" style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="onNow(true)" onClick="onNow()">Now</td>
-          </tr></table>
-        </div>
-      
-        <div id="divPlaylists" class="scrollable" style="position:absolute; left:0px; top:150px; width:100vw; bottom:0px; overflow:scroll; -webkit-overflow-scrolling:touch;">
-          <table id="tablePlaylists" cellspacing=0 style="width:100%;">
-          </table>
-        </div>
-        
-        <div id="divPlaylist" class="scrollable" style="position:absolute; left:100vw; top:150px; width:100vw; bottom:0px; overflow:scroll; -webkit-overflow-scrolling:touch;">
-          <table id="tablePlaylist" cellspacing=0 style="width:100%;">
-          </table>
-        </div>
-        
-        <div id="divPlaylistAlbum" class="scrollable" style="position:absolute; left:100vw; top:150px; width:100vw; bottom:0px; overflow:scroll; -webkit-overflow-scrolling:touch;">
-          <table id="tablePlaylistAlbum" cellspacing=0 style="width:100%;">
-          </table>
-        </div>
-      </div>
-    
-      <!-- artist page -->
-      <div id="tabArtists" style="position:absolute; left:0px; top:0px; width:100vw; bottom:200px; display:none;">
-      
-        <div style="position:absolute; left:0px; top:0px; right:0px; height:150px;">
-          <table style="width:100%; height:150px; border-bottom:4px solid #555;" cellspacing=0><tr>
-            <td style="width:200px;" onTouchStart="onArtistsBack(true)" onClick="onArtistsBack()"><img id="imgArtistsBack" style="visibility:hidden;" src="img/back.png"</td>
-            <td style="text-align:center; font-size:60px; font-weight:bold;" id="tdArtistsTitle">Artists</td>
-            <td class="tdNow"  style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="onNow(true)" onClick="onNow()">Now</td>
-          </tr></table>
-        </div>
-      
-        <div id="divArtists" style="position:absolute; left:0px; top:150px; width:100vw; bottom:0px;">
-          <div style="position:absolute; left:0px; right:0px; top:0px; height:110px;">
-            <input type="text" id="inputSearchArtists" class="inputSearch" onKeyUp="onKeySearchArtist(event)"></input>
-          </div>
-          <div  class="scrollable" style="position:absolute; left:0px; top:112px; width:100vw; bottom:0px; overflow:scroll; -webkit-overflow-scrolling:touch;">
-             <table id="tableArtists" cellspacing=0 style="width:100%;">             
-             </table>            
-          </div>
-        </div>
-        
-        <div id="divArtistAlbums" class="scrollable" style="position:absolute; left:100vw; top:150px; width:100vw; bottom:0px; overflow:scroll; -webkit-overflow-scrolling:touch;">
-          <table id="tableArtistAlbums" cellspacing=0 style="width:100%;">
-          </table>
-        </div>
-        
-        <div id="divArtistAlbum" class="scrollable" style="position:absolute; left:100vw; top:150px; width:100vw; bottom:0px; overflow:scroll; -webkit-overflow-scrolling:touch;">
-          <table id="tableArtistAlbum" cellspacing=0 style="width:100%;">
-          </table>
-        </div>
-      </div>
-      
-      <!-- song page -->
-      <div id="tabSongs" style="position:absolute; left:0px; top:0px; width:100vw; bottom:200px; display:none;">
-      
-        <div style="position:absolute; left:0px; top:0px; right:0px; height:150px;">
-          <table style="width:100%; height:150px; border-bottom:4px solid #555;" cellspacing=0><tr>
-            <td style="width:200px;"></td>
-            <td style="text-align:center; font-size:60px; font-weight:bold;" id="tdSongTitle">Songs</td>
-            <td class="tdNow"  style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="onNow(true)" onClick="onNow()">Now</td>
-          </tr></table>
-        </div>
-      
-        <div id="divSongs" style="position:absolute; left:0px; top:150px; width:100vw; bottom:0px;">
-          <div style="position:absolute; left:0px; right:0px; top:0px; height:110px;">
-            <input type="text" id="inputSearchSongs" class="inputSearch" onKeyUp="onKeySearchSong(event)"></input>
-          </div>
-          <div  class="scrollable" style="position:absolute; left:0px; top:112px; width:100vw; bottom:0px; overflow:scroll; -webkit-overflow-scrolling:touch;">
-             <table id="tableSongs" cellspacing=0 style="width:100%;">             
-             </table>            
-          </div>
-        </div>
-      </div>
-
-      <!-- main menu -->
-      <div style="position:absolute; left:0px; right:0px; bottom:0px; height:200px; background:#EEE;">
-        <table cellspacing=0 style="width:100%; height:150px; border-top:4px solid #555;"><tr>
-          <td style="text-align:center;" onTouchStart="onMainPlaylists(event, true)" onClick="onMainPlaylists(event)"><img id="imgMainPlaylists" src="img/playlist_active.png"></td>
-          <td style="text-align:center;" onTouchStart="onMainArtists(event, true)" onClick="onMainArtists(event)"><img id="imgMainArtists" src="img/interpret.png"></td>
-          <td style="text-align:center;" onTouchStart="onMainSongs(event, true)" onClick="onMainSongs(event)"><img id="imgMainSongs" src="img/song.png"></td>
-          <td style="text-align:center;" onTouchStart="onMainComposers(event, true)" onClick="onMainComposers(event)"><img id="imgMainComposers" src="img/composer.png"></td>
-        </tr></table>
-      </div>
-    </div>
-
-    <!-- player page -->
-    <div id="divPlayer" class="divPlayerPage pageWidth" style="height:100vh; position:absolute;">
-      <div id="divVolumeDigitsOverlay" class="pageWidth" style="display:none; z-index:2; height:100%; position:absolute; font-size:170px; background:rgba(0,0,0,.7); color:#FFF; text-align:center; padding-top:500px;">
-       24.0 dB
-      </div>
-    
-      <div class="artworkWidth" style="height:100%; position:absolute; overflow:hidden; text-align:center;">
-        <img id="artwork" src="img/current.png" class="imgArtwork "style="position:relative;">
-      </div>
-      
-      <div class="pageWidth" style="position:absolute; z-index:1; height:100%;">
-        <table class="pageWidth" style="height:100%;" cellspacing=0 cellpadding=0>
-          <tr class="dark_background" style="height:130px;"><td>
-            <table style="width:100%">
-              <tr>
-                <td class="vertOnly" style="vertical-align:top; padding-top:30px;" onTouchStart="playerBack(event, true)" onClick="playerBack(event)"><img src="img/back_w.png"></td>
-                <td style="text-align:center; color:#FFF;" onTouchStart="playerBack(event, true)" onClick="playerBack(event)">
-                  <span id='track' class="track_title" style="font-weight:bold;"></span><br>
-                  <span id='album_artist' class="artist_album_title"></span>
-                </td>
-                <td class="vertOnly" onTouchStart="onDSP(true)" onClick="onDSP()"><img id="imgDSP" src="img/dsp_off.png" ></td>
-            </table>
-          </td></tr>
-          
-          <!-- track info oerlay -->
-          <tr><td style="">
-            <div id="divTrackInfo" class="vertOnly" style="width:100%; height:100%; background:rgba(0,0,0,.7); color:#FFF; opacity:0;" onTouchStart="onTrackInfo(event, true)" onClick="onTrackInfo(event)">
-              <table style="width:80%; margin:0 auto; font-size:50px;">
-                <tr style="height:80px;"><td></td></tr>
-                <tr><td id="trackRating" style="text-align:center; font-size:120px;"></td></tr>
-                <tr><td id="trackQuality"></td></tr>
-                <tr><td id="trackBitRate"></td></tr>
-                <tr><td id="trackSampleRate"></td></tr>
-                <tr><td>Played Count: <span id="trackPlayedCount"></span></td></tr>
-                <tr><td id="trackComposer"></td></tr>
-                <tr><td id="trackComment"></td></tr>
-              </table>
-            </div>
-          </td></tr>
-          
-          <!-- player position -->
-          <tr class="dark_background trPlayerPosition"><td style="text-align:center;">
-            <table id="tablePosition" style="width:100%; height:100%;">
-              <tr>
-                <td class="player_position_time player_pos_left" style="text-align:right; color:#FFF; font-family:Arial; padding-right:20px;" id="tdAt">0</td>
-                <td style="text-align:center;" onMouseDown="onPosition(false, event)" onTouchStart="onPosition(true, event)" onMouseMove="onPositionMove(false, event)" onTouchMove="onPositionMove(true, event)" id="tdBar">
-                  <div class="progressBar" style="width:100%; border:3px solid #FFF;"><div id="divTime" style="background:#FFF; width:0; height:100%"></div></div>
-                </td>
-                <td class="player_position_time player_pos_right" style="text-align:left; color:#FFF; font-family:Arial; padding-left:20px;" id="tdLeft">0</td>
-              </tr>
-            </table>
-          </td></tr>
-          
-          <!-- player main controls -->
-          <tr class="vertOnly" style="height:200px; background-color:rgba(0,0,0,.5);"><td>
-            <table style="width:100%; height:100%">
-              <tr>
-                <td style="text-align:center;" id="tdPrev" onTouchStart="onPrev(true)" onMouseDown="onPrev()" onTouchEnd="endPrev(true)" onMouseUp="endPrev()"><img src="img/prev.png" style="cursor:pointer;"></td>
-                <td style="text-align:center;" id="tdPlay" onTouchStart="onPlay(true)" onMouseDown="onPlay()" onTouchEnd="endPlay(true)" onMouseUp="endPlay()"><img id="btnPlay" src="img/play.png" style="cursor:pointer;"></td>
-                <td style="text-align:center;" id="tdNext" onTouchStart="onNext(true)" onMouseDown="onNext()" onTouchEnd="endNext(true)" onMouseUp="endNext()"><img src="img/next.png" style="cursor:pointer;"></td>
-              </tr>
-            </table>
-          </td></tr>
-          
-          <!-- player volume -->
-          <tr class="vertOnly" style="height:100px; background-color:rgba(0,0,0,.5);"><td>
-            <table style="width:100%; height:100%;">
-              <tr>
-                <td style="width:5%;"></td>
-                <td style="text-align:center;" onMouseDown="onVolume(false, event)" onTouchStart="onVolume(true, event)" onMouseMove="onVolumeMove(false, event)" onTouchMove="onVolumeMove(true, event)" id="tdVolume">
-                  <table cellspacing=0 cellpadding=0 style="width:100%"><tr>
-                    <td style="width:1px;"><div id='divVolumeDigits' style='padding-right:20px; width:100px; color:#FFF; display:none; font-family:Arial; font-size:40px;'>12</div></td>
-                    <td><div style="width:100%; height:30px; border-radius:15px; border:3px solid #FFF; display:inline-block;" id="divVolumeSlider">
-                      <div id="divVolume" style="background:#FFF; border-radius:10px; width:0; height:100%"></div>
-                    </div></td>
-                  </tr></table>
-                </td>
-                <td style="width:5%;"></td>
-              </tr>
-            </table>
-          </td></tr>
-          
-          <!-- player menu -->
-          <tr class="vertOnly" style="height:150px; background-color:rgba(0,0,0,.5);"><td>
-            <table style="width:100%"><tr>
-              <td id="tdAlbum" style="text-align:center;" onTouchStart="onAlbum(event, true)" onClick="onAlbum(event)"><img src="img/album.png"></td>
-              <td style="text-align:center;" onTouchStart="onRepeat(true)" onClick="onRepeat()" id="tdRepeat"><img src="img/repeat.png" id="imgRepeat"></td>
-              <td style="text-align:center;"><img src="img/queue.png"></td>
-              <td style="text-align:center;" onTouchStart="onShuffle(true)" onClick="onShuffle()" id="tdShuffle"><img src="img/shuffle.png"></td>
-              <td style="text-align:center;" onTouchStart="onTracksPlaylists(event, true)" onClick="onTracksPlaylists(event)"><img src="img/list.png"></td>
-            </tr></table>
-          </td></tr>
-          <tr class="vertOnly" style="height:40px;"><td></td></tr>
-        </table>
-      </div>
-    </div>    
-    
-    <div id="divAlbum" class="vertOnly" style="position:absolute; top:100vh; width:100vw; height:100vh; z-index:1; background:#EEE;">
-      <div style="position:absolute; left:0px; top:0px; right:0px; height:490px;">
-        <table style="width:100%; height:150px; border-bottom:4px solid #555;" cellspacing=0><tr>
-          <td style="width:200px; text-align:center;"></td>
-          <td style="text-align:center; font-size:60px; font-weight:bold;">Album</td>
-          <td style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="albumBack(event, true)" onClick="albumBack(event)">Back</td>
-        </tr></table>
-        <table style="width:100%; height:322px;" cellspacing=0 cellpadding=0>
-          <tr><td>
-          </td></tr>
-          <tr onClick="onCurrentAlbum()"><td style="padding:20px; background:#FFF;">
-            <table style="width:100%;"><tr>
-              <td style="width:300px;">
-                <img id="artwork_album" src="img/current.png" style="width:100%">
-              </td>
-              <td style="vertical-align:top; font-size:40px; padding-left:20px;">
-                <span id="albumName" style="font-size:40px; font-weight:bold;"></span><br>
-                Artist:&nbsp;<span id="albumArtist" ></span><br>
-                Year:&nbsp;<span id="albumYear"></span>
-              </td>
-            </tr></table>
-          </td></tr>
-        </table>
-      </div>
-      <div id="divAlbumTracklist" class="scrollable" style="position:absolute; left:0px; top:490px; right:0px; bottom:0px; overflow:scroll; -webkit-overflow-scrolling:touch;">
-        <table id="tableAlbumTracks" cellspacing=0 style="width:100%; padding-bottom:60px;">
-        </table>
-      </div>
-    </div>
-
-    <div id="divTracksPlaylists" class="vertOnly" style="position:absolute; top:100vh; width:100vw; height:100vh; z-index:1; background:#EEE;">
-      <div style="position:absolute; left:0px; top:0px; right:0px; height:150px;">
-        <table style="width:100%; height:150px; border-bottom:4px solid #555;" cellspacing=0><tr>
-          <td style="width:200px;"></td>
-          <td style="text-align:center; font-size:60px; font-weight:bold;">Playlists</td>
-          <td style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="tracksPlaylistsBack(event, true)" onClick="tracksPlaylists(event)">Back</td>
-        </tr></table>
-      </div>
-      <div id="divTracksPlaylistsList" class="scrollable" style="position:absolute; left:0px; top:150px; right:0px; bottom:0px; overflow:scroll; -webkit-overflow-scrolling:touch;">
-        <table id="tableTracksPlaylists" cellspacing=0 style="width:100%; padding-bottom:60px;">
-        </table>
-      </div>
-    </div>
-
-    <!-- message -->
-    <div id="divMessage" class="vertOnly message">
-      <span id="spanMessage">Track queued</span>
-    </div>
-
-    <!-- no track page -->
-    <div id="divNoTrack" class="landscapeOnly darkBackground" style="z-index:3; height:100vh; width:100vw; position:absolute;">
-      <div style="height:100vh; width:100vw; position:absolute;">
-      </div>
-      <div style="height:100vh; width:100vw; position:absolute; color:#FFF;">
-        <img src="img/itunes.png" style="position:absolute; top:0; bottom:0; left:0; right:0; margin:auto;">
-      </div>
-    </div>
-
-    <!-- audio mute page -->
-    <div id="divAudioDeviceMute" class="darkBackground" style="z-index:4; display:none; height:100vh; width:100vw; position:absolute;">
-      <div style="height:100vh; width:100vw; position:absolute;">
-      </div>
-      <div style="height:100vh; width:100vw; position:absolute; color:#FFF;">
-        <img src="img/mute.png" style="position:absolute; top:0; bottom:0; left:0; right:0; margin:auto;">
-      </div>
-    </div>
-    
-    <!-- no audio device page -->
-    <div id="divNoAudioDevice" style="z-index:5; display:none; height:100vh; width:100vw; position:absolute;">
-      <div style="height:100vh; width:100vw; position:absolute; background:#000;">
-      </div>
-      <div style="height:100vh; width:100vw; position:absolute; color:#FFF;">
-        <div style="position:absolute; width:400px; height:290px; top:0; bottom:0; left:0; right:0; margin:auto;">
-          <img id="imgPower" src="img/power_green.png" style="position:absolute; left:0; right:0; margin:auto;">
-          <div id="divDeviceSource" style="position:absolute; height:50px; width:100%; bottom:0px; display:table-cell; text-align: center; font-size:50px;">
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- offline page -->
-    <div id="divOffline" class="landscapeOnly" style="z-index:10; display:none; height:100vh; width:100vw; position:absolute; background:#000;">
-      <div style="height:100vh; width:100vw; position:absolute;">
-      </div>
-      <div style="height:100vh; width:100vw; position:absolute; color:#FFF;">
-        <img src="img/disconnected.png" style="position:absolute; top:0; bottom:0; left:0; right:0; margin:auto;">
-      </div>
-    </div>
-
               
   </body>
 </html>
