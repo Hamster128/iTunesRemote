@@ -249,7 +249,7 @@ module.exports = {
     // remove first line but keep CRLF
     let data = cfg.slice(7);
 
-    // calc CRC
+    // calc CRC of "dp_cfg.txt"
     let crc16 = crc.crc16ccitt(data).toString(16).toUpperCase();
 
     // insert new CRC into buffer
