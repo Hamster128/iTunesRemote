@@ -15,7 +15,7 @@
     <title>Remote Pro</title>
   </head>
   <body class="darkBackground" style="margin:0; position:fixed; overflow:hidden; font-family:Arial;" onMouseUp="endVolume(false); endPosition(false);" onTouchEnd="endVolume(true); endPosition(true);">
-    <script src="js/socket.io-1.2.0.js"></script>
+    <script src="js/socket.io_4.7.1.min.js"></script>
     <script src="js/jquery-3.3.1.min.js"></script>
     <script src="js/itunes_api.js"></script>
     
@@ -302,15 +302,6 @@
     </div>
 
     <script>
-      window.onerror = function(err) {
-        console.log(err);
-        debug(err + ' '  + err.stack);
-      }
-
-      function debug(msg) {
-        $('#divDebug').append(`<div style="background:#000;">${msg}</div>`);
-      }
-
       var socket = io();
       var settings = {};
       var state = {state:0, position:0};
@@ -333,6 +324,16 @@
       var actAudioDeviceSource = '';
       var actAudioDeviceMute = 0;
       var msgHideTimeout;
+
+      window.onerror = function(err) {
+        console.log(err);
+        debug(err + ' '  + err.stack);
+      }
+
+      function debug(msg) {
+        $('#divDebug').append(`<div style="background:#000;">${msg}</div>`);
+        socket.emit('log', msg);
+      }
 
       function isTouchDevice() {
         var el = document.createElement('div');
@@ -459,6 +460,11 @@
         $('#divOffline').hide();
         itunes.playLists();
         console.log('reconnect '+attempt);
+      });
+
+      socket.on('error', function(err) {
+        console.log('socket', err);
+        debug('socket ' + err + ' '  + err.stack);
       });
 
       socket.on('settings', function(msg){

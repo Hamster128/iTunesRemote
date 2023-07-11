@@ -358,10 +358,7 @@ io.on('connection', function(socket){
     
   socket.on('settings', function(msg){
     settings = msg;
-    fs.writeFile("settings.json", JSON.stringify(msg, null, 2), function(err) {
-      if(err)
-        console.log(err);
-    });       
+    fs.writeFileSync("settings.json", JSON.stringify(msg, null, 2));
   });
 
   socket.on('eq_apo', function(msg){
@@ -374,10 +371,11 @@ io.on('connection', function(socket){
       fs.copyFileSync("C:\\Program Files\\EqualizerAPO\\config\\off.txt", "C:\\Program Files\\EqualizerAPO\\config\\config.txt");
     }
 
-    fs.writeFile("settings.json", JSON.stringify(msg, null, 2), function(err) {
-      if(err)
-        console.log(err);
-    });       
+    fs.writeFileSync("settings.json", JSON.stringify(msg, null, 2));
+  });
+
+  socket.on('log', function(msg){
+    console.log('CLIENT:', msg);
   });
   
   socket.emit('settings', settings);

@@ -15,7 +15,7 @@ var whenQueueIsEmpty = undefined;
 
 let executeScript = function(scriptName, cb) {
 
-	console.log('execute', scriptName);
+	// console.log('execute', scriptName);
 
 	exec(execCmd + scriptName, script_options, function(err, stdout, stderr) {
 		if (err) {
@@ -24,7 +24,7 @@ let executeScript = function(scriptName, cb) {
 			return;
 		}
 
-		console.log('script done', scriptName, stdout.toString(), stderr.toString());
+		// console.log('script done', scriptName, stdout.toString(), stderr.toString());
 		cb(null, stdout, '');
 	});
 };
@@ -42,11 +42,11 @@ let executeScriptRes = function(scriptName, cb) {
 		// stdout doesn`t work, so we need to use temp file
 		var so = fs.readFileSync(tmpName);
 		fs.unlink(tmpName, function(err) {});
-
+/*
 		if(scriptName.substring(0, 15) != 'currentTrack.js' &&
 			 scriptName.substring(0, 17) != 'getPlayerState.js')
 			console.log(scriptName, iconv.decode(so, 'utf16'));
-
+*/
 		cb(null, so, '');
 	});
 };
