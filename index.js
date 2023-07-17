@@ -578,6 +578,8 @@ function getState() {
               return;
               
             if(!resp.found) {
+              track.artworks = 1;
+
               var is = fs.createReadStream('public/img/no_cover.png')
               
               is.on('end', function() {
@@ -588,16 +590,18 @@ function getState() {
                 console.log('Can`t open public/img/no_cover.png '+e);
               });
                 
-              var os = fs.createWriteStream('public/img/current.png');
+              var os = fs.createWriteStream('public/img/current1.png');
   
               os.on('error', function(e) {
-                console.log('Can`t write public/img/current.png '+e);
+                console.log('Can`t write public/img/current1.png '+e);
               });
                               
               is.pipe(os);
             }
-            else
+            else {
+              track.artworks = resp.found;
               io.sockets.emit('track', track);
+            }
           });
         }
         
