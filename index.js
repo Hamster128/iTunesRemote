@@ -519,6 +519,8 @@ function getState() {
         track = rsp;
 
         if(track.kind == 3) { // radio
+          track.artworks = 1;
+
           var is = fs.createReadStream('public/thumbs_radio/' + track.name + '.jpg')
           
           is.on('end', function() {
@@ -538,19 +540,19 @@ function getState() {
               console.log('Can`t open public/img/no_radio_icon.jpg '+e);
             });
               
-            var os = fs.createWriteStream('public/img/current.png');
+            var os = fs.createWriteStream('public/img/current1.png');
 
             os.on('error', function(e) {
-              console.log('Can`t write public/img/current.png '+e);
+              console.log('Can`t write public/img/current1.png '+e);
             });
                             
             is.pipe(os);
           });
             
-          var os = fs.createWriteStream('public/img/current.png');
+          var os = fs.createWriteStream('public/img/current1.png');
 
           os.on('error', function(e) {
-            console.log('Can`t write public/img/current.png '+e);
+            console.log('Can`t write public/img/current1.png '+e);
           });
                           
           is.pipe(os);
