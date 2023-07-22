@@ -9,6 +9,9 @@ var path = require('path');
 const execFile = require('child_process').execFile;
 const exec = require('child_process').exec;
 const devialet = require('./devialet');
+const Con2log = require('./con2log');
+
+Con2log.keepFilesDays = 7;
 
 var state = {
   state:0,

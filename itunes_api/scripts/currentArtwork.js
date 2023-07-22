@@ -1,13 +1,13 @@
 var	iTunesApp = WScript.CreateObject("iTunes.Application");
 
-var found = false;
 var track = iTunesApp.CurrentTrack;
+var count = 0;
 
 if(track) {
   var artworks = track.Artwork;
   
   if(artworks && artworks.Count) {
-
+    count = artworks.Count;
 
     for(var a = 1; a <= artworks.Count; a++) {
 
@@ -24,7 +24,6 @@ if(track) {
   
       try {
         artwork.SaveArtworkToFile(path);
-        found = true;
       } catch(e) {
       }
   
@@ -32,4 +31,4 @@ if(track) {
   }
 }
 
-WScript.echo('{"found":'+artworks.Count+'}');
+WScript.echo('{"found":'+count+'}');

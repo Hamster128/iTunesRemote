@@ -97,11 +97,14 @@
   .divPlayerPage {
     position:absolute;
     background:#000;
+    left: auto;
+    margin-left: auto;
   }
   
   .imgArtwork {
     top:170px;
     width:95%;
+    -webkit-filter: contrast(100%) brightness(100%) saturate(100%);
   }
   
   .player_pos_left {

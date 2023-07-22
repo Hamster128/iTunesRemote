@@ -147,11 +147,12 @@ let doNextInQueue = function() {
 
 			if (job.cb) {
 				var str = iconv.decode(stdout, 'utf16');
+
 				try {
 					job.cb(JSON.parse(str));
 				} catch (e) {
-					console.log('itunes.currentArtwork error parsing [' + str + '] ',  e);
-					job.cb({ found: false });
+					console.log('itunes.currentArtwork error parsing [' + str + ']',  e, stderr);
+					job.cb({ found: 0 });
 				}
 			}
 
@@ -227,7 +228,7 @@ let doNextInQueue = function() {
 				try {
 					job.cb(JSON.parse(str));
 				} catch (e) {
-					console.log('itunes.albumTracks error parsing [' + str + '] ',  e);
+					console.log('itunes.albumTracks error parsing [' + str + '] ',  e, stderr);
 				}
 			}
 
@@ -279,7 +280,7 @@ let doNextInQueue = function() {
 				try {
 					job.cb(JSON.parse(str));
 				} catch (e) {
-					console.log('itunes.playLists error parsing [' + str + '] ',  e);
+					console.log('itunes.playLists error parsing [' + str + '] ',  e, stderr);
 				}
 			}
 
@@ -295,7 +296,7 @@ let doNextInQueue = function() {
 				try {
 					job.cb(JSON.parse(str));
 				} catch (e) {
-					console.log('itunes.tracksPlaylists error parsing [' + str + '] ',  e);
+					console.log('itunes.tracksPlaylists error parsing [' + str + '] ',  e, stderr);
 				}
 			}
 
@@ -322,7 +323,7 @@ let doNextInQueue = function() {
 					try {
 						job.cb(JSON.parse(str));
 					} catch (e) {
-						console.log('itunes.playlistTracks error parsing [' + str + ']', e);
+						console.log('itunes.playlistTracks error parsing [' + str + ']', e, stderr);
 					}
 				}
 
@@ -340,7 +341,7 @@ let doNextInQueue = function() {
 				try {
 					job.cb(JSON.parse(str));
 				} catch (e) {
-					console.log('itunes.search error parsing [' + str + ']', script, e);
+					console.log('itunes.search error parsing [' + str + ']', script, e, stderr);
 				}
 			}
 
@@ -419,7 +420,7 @@ let doNextInQueue = function() {
 				try {
 					job.cb(JSON.parse(str));
 				} catch (e) {
-					console.log('itunes.artistAlbums error parsing [' + str + '] ',  e);
+					console.log('itunes.artistAlbums error parsing [' + str + '] ',  e, stderr);
 				}
 			}
 
