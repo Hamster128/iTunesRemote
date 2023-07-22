@@ -594,14 +594,19 @@
 
         if(showArtwork != currentArtwork) {
 
+          var unique = track.album + track.TrackCount;
+          if(track.kind == 3) {
+            track.name;
+          }
+
           if(showArtwork > 1) {
             $('#artwork' + currentArtwork).fadeOut(5000);
             currentArtwork = showArtwork;
-            $('#artwork' + currentArtwork).attr('src', 'img/current' + currentArtwork + '.png?unique=' + track.album + track.TrackCount).fadeIn(5000);
+            $('#artwork' + currentArtwork).attr('src', 'img/current' + currentArtwork + '.png?unique=' + unique).fadeIn(5000);
           } else {
             $('#artwork' + currentArtwork).hide();
             currentArtwork = showArtwork;
-            $('#artwork' + currentArtwork).attr('src', 'img/current' + currentArtwork + '.png?unique=' + track.album + track.TrackCount).show();
+            $('#artwork' + currentArtwork).attr('src', 'img/current' + currentArtwork + '.png?unique=' + unique).show();
           }
         }	
 
@@ -671,7 +676,12 @@
         else
           $('#album_artist').html(msg.album);
         
-        $('#artwork1').attr('src', 'img/current' + currentArtwork + '.png?unique=' + msg.album + track.TrackCount);
+        var unique = track.album + track.TrackCount;
+        if(track.kind == 3) {
+          track.name;
+        }
+
+        $('#artwork1').attr('src', 'img/current' + currentArtwork + '.png?unique=' + unique);
         $('#artwork_album').attr('src', 'img/current1.png?unique=' + msg.album + track.TrackCount);
         $('#albumName').html(msg.album);        
         if(msg.albumArtist != '') $('#albumArtist').html(msg.albumArtist);
