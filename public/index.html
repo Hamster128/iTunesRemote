@@ -596,7 +596,7 @@
 
           var unique = track.album + track.TrackCount;
           if(track.kind == 3) {
-            track.name;
+            unique = track.name;
           }
 
           if(showArtwork > 1) {
@@ -678,7 +678,7 @@
         
         var unique = track.album + track.TrackCount;
         if(track.kind == 3) {
-          track.name;
+          unique = track.name;
         }
 
         $('#artwork1').attr('src', 'img/current' + currentArtwork + '.png?unique=' + unique);
