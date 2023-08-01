@@ -346,7 +346,7 @@
       var volDevialet = true;
       var actVolumeDigits = '';
       var hideVolumeDigitsOverlayTimeout = 0;
-      var second = 0, interval = 1000;
+      var csecond = 0, interval = 1000;
       var actAudioDevicePresent = 2;
       var actAudioDeviceSource = '';
       var actAudioDeviceMute = 0;
@@ -370,6 +370,9 @@
       }
       
       function formatTime(secs) {
+
+        secs = Math.floor(secs);
+
         var days = Math.floor(secs / 60 / 60 / 24);
         secs -= days * 60 * 60 * 24;
 
@@ -405,16 +408,21 @@
       function displayTime(position) {
         actPosition = position;
         
-        $('#tdAt').html(formatTime(position));
+		    if(position % 10 == 0) {
+	        $('#tdAt').html(formatTime(position / 10));
+		    }
         
         if(track.name) {
-          var left = track.duration - position;
+          var left = track.duration * 10 - position;
           
           if(left < 0)
             left = 0;
             
-          $('#tdLeft').html('-'+formatTime(left));
-          $('#divTime').css('width', (position / track.duration * 100)+'%');
+		      if(left % 10 == 0) {
+            $('#tdLeft').html('-'+formatTime(left / 10));
+		      }
+		  
+          $('#divTime').css('width', (position / track.duration * 10)+'%');
         }
       }
                   
@@ -424,31 +432,31 @@
       }
       
       function onSecond() {
-        if(second < track.duration)
-          second ++;
+        if(csecond < track.duration * 10)
+          csecond ++;
         
-        if(second == state.position - 1) {
-          if(interval != 900) {
+        if(csecond < state.position * 10) {
+          if(interval != 90) {
             clearInterval(timer);
-            interval = 900;
+            interval = 90;
             timer = setInterval(onSecond, interval);
            }
         }
-        else if(second == state.position + 1) {
-          if(interval != 1100) {
+        else if(csecond > state.position * 10 + 10) {
+          if(interval != 110) {
             clearInterval(timer);
-            interval = 1100;
+            interval = 110;
             timer = setInterval(onSecond, interval);
           }
         }
-        else if(interval != 1000) {
+        else if(interval != 100) {
           clearInterval(timer);
-          interval = 1000;
+          interval = 100;
           timer = setInterval(onSecond, interval);
         }
         
         if(!dragPosActive)
-          displayTime(second);
+          displayTime(csecond);
       }
       
       function displayShuffle(s) {
@@ -565,23 +573,23 @@
         if(state.state && !oldState) {
           $('#btnPlay').attr('src', 'img/pause.png'); 
           
-          second = msg.position;
+          csecond = msg.position * 10;
           
           if(!dragPosActive)
-            displayTime(second);
+            displayTime(csecond);
           
-          interval = 1000;
+          interval = 100;
           timer = setInterval(onSecond, interval);
         }
         else if(!state.state && oldState) {
           $('#btnPlay').attr('src', 'img/play.png');
           clearInterval(timer);
           
-          if(second != msg.position) {
-            second = msg.position;
+          if(csecond != msg.position * 10) {
+            csecond = msg.position * 10;
           
             if(!dragPosActive)
-              displayTime(second);
+              displayTime(csecond);
           }
         }
 
@@ -611,19 +619,19 @@
         }	
 
         // adjust time display
-        if(second < state.position - 1 || 
-           second > state.position + 1) {
+        if(csecond < state.position * 10 - 10 || 
+           csecond > state.position * 10 + 20) {
            
-          second = state.position;
+          csecond = state.position * 10;
           
           if(state.state) {
             clearInterval(timer);
-            interval = 1000;
+            interval = 100;
             timer = setInterval(onSecond, interval);
           }
           
           if(!dragPosActive)
-            displayTime(second);
+            displayTime(csecond);
         }
 
         if(!dragVolumeActive) {
@@ -711,7 +719,7 @@
         markPlayingTrack();
         
         if(!dragPosActive)
-          displayTime(second);
+          displayTime(csecond);
       });
           
       function displayRating(rating) {
@@ -821,10 +829,10 @@
           pos = ev.offsetX;
          
         var width = $('#tdBar')[0].offsetWidth;
-        var position = Math.round(pos / width * track.duration);
+        var position = Math.round(pos / width * track.duration * 10);
         
-        if(position > track.duration)
-          position = track.duration;
+        if(position > track.duration * 10)
+          position = track.duration * 10;
         
         if(position < 0)
           position = 0;
@@ -847,7 +855,7 @@
         if(!dragPos || (touchScreen && !touched))
           return;
           
-        itunes.setPlayerPosition(actPosition);
+        itunes.setPlayerPosition(Math.floor(actPosition / 10));
         dragPos = false;
         
         dragPosActiveTimeout = setTimeout(function(){dragPosActive = false;}, 1000);
