@@ -84,8 +84,6 @@ server.on('error', function(err) {
   console.log(`Error listening on port ${STATUS_PORT}`, err);
 });
 
-server.bind(STATUS_PORT);
-
 //--------------------------------------------------------------
 function sendPacket(msg) {
 
@@ -133,6 +131,11 @@ function sendNext() {
 
 //--------------------------------------------------------------
 module.exports = {
+
+  //--------------------------------------------------------------
+  start: function() {
+    server.bind(STATUS_PORT);    
+  },
 
   //--------------------------------------------------------------
   configure: function(options) {

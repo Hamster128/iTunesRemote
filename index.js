@@ -819,6 +819,8 @@ else {
 }
 
 
+devialet.start();
+
 devialet.on("status", function(status){
 
   if(status.vol != devialetVol) {
