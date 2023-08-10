@@ -16,8 +16,8 @@ albumOfTrack = function(strack) {
     if(track.Album != strack.Album)
       continue;
 
-    if(track.TrackCount != strack.TrackCount)
-      continue;
+//    if(track.TrackCount != strack.TrackCount)
+//      continue;
 
     if(!track.Compilation) {
       var Artist = track.AlbumArtist;

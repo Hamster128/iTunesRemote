@@ -119,7 +119,7 @@
       </div>
     
       <div class="artworkWidth" style="height:100%; position:absolute; overflow:hidden; text-align:center;">
-        <img id="artwork1" src="img/current1.png" class="imgArtwork "style="position:relative;">
+        <img id="artwork1" class="imgArtwork "style="position:relative;">
       </div>
       <div class="artworkWidth" style="height:100%; position:absolute; overflow:hidden; text-align:center;">
         <img id="artwork2" class="imgArtwork "style="position:relative; display:none;">
@@ -602,7 +602,7 @@
 
         if(showArtwork != currentArtwork) {
 
-          var unique = track.album + track.TrackCount;
+          var unique = track.album + track.trackCount;
           if(track.kind == 3) {
             unique = track.name;
           }
@@ -684,13 +684,13 @@
         else
           $('#album_artist').html(msg.album);
         
-        var unique = track.album + track.TrackCount;
+        var unique = track.album + track.trackCount;
         if(track.kind == 3) {
           unique = track.name;
         }
 
-        $('#artwork1').attr('src', 'img/current' + currentArtwork + '.png?unique=' + unique);
-        $('#artwork_album').attr('src', 'img/current1.png?unique=' + msg.album + track.TrackCount);
+        $('#artwork1').attr('src', 'img/current1.png?unique=' + unique);
+        $('#artwork_album').attr('src', 'img/current1.png?unique=' + unique);
         $('#albumName').html(msg.album);        
         if(msg.albumArtist != '') $('#albumArtist').html(msg.albumArtist);
         else                      $('#albumArtist').html(msg.artist);
