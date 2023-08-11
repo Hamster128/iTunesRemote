@@ -610,7 +610,7 @@
           if(showArtwork > 1) {
             $('#artwork' + currentArtwork).fadeOut(5000);
             currentArtwork = showArtwork;
-            $('#artwork' + currentArtwork).attr('src', 'img/current' + currentArtwork + '.png?unique=' + unique).fadeIn(5000);
+            $('#artwork' + currentArtwork).attr('src', 'img/current' + currentArtwork + '.png?unique=' + unique+track.trackNumber).fadeIn(5000);
           } else {
             $('#artwork' + currentArtwork).hide();
             currentArtwork = showArtwork;
@@ -946,9 +946,14 @@
           
           for(r=0; r<tr.rating; r+=20)
             rating+='&#x2605';
-          
+
+          var interpret = '';
+          if(tr.albumArtist != tr.artist || tr.compilation) {
+            interpret = tr.artist + ' ';
+          }
+
           var duration = formatTime(tr.duration);
-          var oTr = $.parseHTML('<tr class="trTrack" style="border-bottom:4px solid #000;" onClick="onAlbumTrack('+tr.id_low+', '+tr.id_high+')"><td class="tdTrackNumber"><div class="divAlbumTrackNr_'+tr.id_low+'_'+tr.id_high+'">'+tr.trackNumber+'</div><div class="divAlbumTrackPlay_'+tr.id_low+'_'+tr.id_high+'"><img src="img/playing.png"></div></td><td class="tdTrackInfo"><span class="tdTrackName">'+tr.name+'</span><br>'+duration+' '+rating+'</td></tr>');
+          var oTr = $.parseHTML('<tr class="trTrack" style="border-bottom:4px solid #000;" onClick="onAlbumTrack('+tr.id_low+', '+tr.id_high+')"><td class="tdTrackNumber"><div class="divAlbumTrackNr_'+tr.id_low+'_'+tr.id_high+'">'+tr.trackNumber+'</div><div class="divAlbumTrackPlay_'+tr.id_low+'_'+tr.id_high+'"><img src="img/playing.png"></div></td><td class="tdTrackInfo"><span class="tdTrackName">'+tr.name+'</span><br>'+interpret+duration+' '+rating+'</td></tr>');
           $table.append(oTr);
         }
 

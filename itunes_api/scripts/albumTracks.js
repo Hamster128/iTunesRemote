@@ -33,6 +33,7 @@ if(otrack)
       "id_low":iTunesApp.ITObjectPersistentIDLow(track),
       "id_high":iTunesApp.ITObjectPersistentIDHigh(track),
       "trackNumber":track.TrackNumber,
+      "compilation":track.Compilation,
       "bitRate":track.BitRate,
       "duration":track.Duration,
       "rating":track.Rating,
