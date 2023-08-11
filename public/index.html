@@ -948,7 +948,7 @@
             rating+='&#x2605';
 
           var interpret = '';
-          if(tr.albumArtist != tr.artist || tr.compilation) {
+          if( (tr.albumArtist != '' && tr.albumArtist != tr.artist) || tr.compilation) {
             interpret = tr.artist + ' ';
           }
 
