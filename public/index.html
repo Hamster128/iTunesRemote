@@ -351,7 +351,7 @@
       var actAudioDeviceSource = '';
       var actAudioDeviceMute = 0;
       var msgHideTimeout;
-      var currentArtwork = 1;
+      var currentArtwork = 0;
 
       window.onerror = function(err) {
         console.log(err);
@@ -608,13 +608,13 @@
           }
 
           if(showArtwork > 1) {
-            $('#artwork' + currentArtwork).fadeOut(5000);
+            $('#artwork' + currentArtwork).stop().fadeOut(5000);
             currentArtwork = showArtwork;
-            $('#artwork' + currentArtwork).attr('src', 'img/current' + currentArtwork + '.png?unique=' + unique+track.trackNumber).fadeIn(5000);
+            $('#artwork' + currentArtwork).attr('src', 'img/current' + currentArtwork + '.png?unique=' + unique+track.trackNumber).stop().fadeIn(5000);
           } else {
-            $('#artwork' + currentArtwork).hide();
-            currentArtwork = showArtwork;
-            $('#artwork' + currentArtwork).attr('src', 'img/current' + currentArtwork + '.png?unique=' + unique).show();
+            $('#artwork' + currentArtwork).stop().fadeOut(1);
+            currentArtwork = 1;
+            $('#artwork1').attr('src', 'img/current1.png?unique=' + unique).stop().fadeIn(1);
           }
         }	
 
