@@ -49,6 +49,12 @@ function findPlayList(Name)
 
 if(otrack)
 {
+  // first delete temp play list to prevent albumOfTrack() searching on it
+  var tmpl = findPlayList("zRemotePro");
+
+  if(tmpl)
+    tmpl.Delete();
+
   var trackNr = otrack.TrackNumber;
   var discNr  = otrack.DiscNumber;
   
@@ -61,11 +67,6 @@ if(otrack)
     iTunesApp.SoundVolume = v;
 
   iTunesApp.Stop();
-
-  var tmpl = findPlayList("zRemotePro");
-
-  if(tmpl)
-    tmpl.Delete();
 
   tmpl = iTunesApp.CreatePlaylist("zRemotePro");
     
