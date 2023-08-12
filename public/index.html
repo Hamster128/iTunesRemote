@@ -1532,6 +1532,15 @@
         itunes.search(5, val);
       }
 
+      // load last song search string
+      if($(window).width() < $(window).height()) {
+        var searchSongCfg = getCookie("searchSong");
+        if(searchSongCfg) {
+          $('#inputSearchSongs').val(searchSongCfg);
+          itunes.search(5, searchSongCfg);
+        }
+      }
+
       function onKeySearchAlbum(e) {
         var val = $('#inputSearchAlbums').val();
         
@@ -1545,12 +1554,12 @@
         itunes.search(3, val);
       }
 
-      // load last artist search string
+      // load last album search string
       if($(window).width() < $(window).height()) {
-        var searchSongCfg = getCookie("searchSong");
-        if(searchSongCfg) {
-          $('#inputSearchSongs').val(searchSongCfg);
-          itunes.search(5, searchSongCfg);
+        var searchAlbumCfg = getCookie("searchAlbum");
+        if(searchAlbumCfg) {
+          $('#inputSearchAlbums').val(searchAlbumCfg);
+          itunes.search(3, searchAlbumCfg);
         }
       }
       
@@ -1654,11 +1663,11 @@
         $('#divAlbums').animate({"left":"-100vw"});
       }
 
-      // inital load of last selected artists album
+      // inital load of last selected searched album
       if($(window).width() < $(window).height()) {
-        var artistsAlbumCfg = getCookie("artistsAlbum");
-        if(artistsAlbumCfg) {
-          onArtistAlbum(artistsAlbumCfg.id_low, artistsAlbumCfg.id_high, artistsAlbumCfg.name);
+        var searchedAlbumCfg = getCookie("searchedAlbum");
+        if(searchedAlbumCfg) {
+          onSearchedAlbum(searchedAlbumCfg.id_low, searchedAlbumCfg.id_high, searchedAlbumCfg.name);
         }
       }
 
