@@ -25,7 +25,7 @@
       
         <div style="position:absolute; left:0px; top:0px; right:0px; height:150px;">
           <table style="width:100%; height:150px; border-bottom:4px solid #555;" cellspacing=0><tr>
-            <td style="width:200px;" onTouchStart="onPlaylistsBack(true)" onClick="onPlaylistsBack()"><img id="imgPlaylistsBack" style="visibility:hidden;" src="img/back.png"</td>
+            <td style="width:200px;" onTouchStart="onPlaylistsBack(true)" onClick="onPlaylistsBack()"><img id="imgPlaylistsBack" style="visibility:hidden;" src="img/back.png"></td>
             <td style="text-align:center; font-size:60px; font-weight:bold;" id="tdPlaylistsTitle">Playlists</td>
             <td class="tdNow" style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="onNow(true)" onClick="onNow()">Now</td>
           </tr></table>
@@ -52,7 +52,7 @@
       
         <div style="position:absolute; left:0px; top:0px; right:0px; height:150px;">
           <table style="width:100%; height:150px; border-bottom:4px solid #555;" cellspacing=0><tr>
-            <td style="width:200px;" onTouchStart="onArtistsBack(true)" onClick="onArtistsBack()"><img id="imgArtistsBack" style="visibility:hidden;" src="img/back.png"</td>
+            <td style="width:200px;" onTouchStart="onArtistsBack(true)" onClick="onArtistsBack()"><img id="imgArtistsBack" style="visibility:hidden;" src="img/back.png"></td>
             <td style="text-align:center; font-size:60px; font-weight:bold;" id="tdArtistsTitle">Artists</td>
             <td class="tdNow"  style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="onNow(true)" onClick="onNow()">Now</td>
           </tr></table>
@@ -79,7 +79,7 @@
         </div>
       </div>
       
-      <!-- song page -->
+      <!-- songs page -->
       <div id="tabSongs" style="position:absolute; left:0px; top:0px; width:100vw; bottom:200px; display:none;">
       
         <div style="position:absolute; left:0px; top:0px; right:0px; height:150px;">
@@ -101,13 +101,40 @@
         </div>
       </div>
 
+      <!-- albums page -->
+      <div id="tabAlbums" style="position:absolute; left:0px; top:0px; width:100vw; bottom:200px; display:none;">
+      
+        <div style="position:absolute; left:0px; top:0px; right:0px; height:150px;">
+          <table style="width:100%; height:150px; border-bottom:4px solid #555;" cellspacing=0><tr>
+            <td style="width:200px;" onTouchStart="onAlbumsBack(true)" onClick="onAlbumsBack()"><img id="imgAlbumsBack" style="visibility:hidden;" src="img/back.png"></td>
+            <td style="text-align:center; font-size:60px; font-weight:bold;" id="tdAlbumsTitle">Albums</td>
+            <td class="tdNow"  style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="onNow(true)" onClick="onNow()">Now</td>
+          </tr></table>
+        </div>
+      
+        <div id="divAlbums" style="position:absolute; left:0px; top:150px; width:100vw; bottom:0px;">
+          <div style="position:absolute; left:0px; right:0px; top:0px; height:110px;">
+            <input type="text" id="inputSearchAlbums" class="inputSearch" onKeyUp="onKeySearchAlbum(event)"></input>
+          </div>
+          <div  class="scrollable" style="position:absolute; left:0px; top:112px; width:100vw; bottom:0px; overflow:scroll; -webkit-overflow-scrolling:touch;">
+             <table id="tableAlbums" cellspacing=0 style="width:100%;">             
+             </table>            
+          </div>
+        </div>
+
+        <div id="divSearchedAlbum" class="scrollable" style="position:absolute; left:100vw; top:150px; width:100vw; bottom:0px; overflow:scroll; -webkit-overflow-scrolling:touch;">
+          <table id="tableSearchedAlbum" cellspacing=0 style="width:100%;">
+          </table>
+        </div>
+      </div>
+
       <!-- main menu -->
       <div style="position:absolute; left:0px; right:0px; bottom:0px; height:200px; background:#EEE;">
         <table cellspacing=0 style="width:100%; height:150px; border-top:4px solid #555;"><tr>
           <td style="text-align:center;" onTouchStart="onMainPlaylists(event, true)" onClick="onMainPlaylists(event)"><img id="imgMainPlaylists" src="img/playlist_active.png"></td>
           <td style="text-align:center;" onTouchStart="onMainArtists(event, true)" onClick="onMainArtists(event)"><img id="imgMainArtists" src="img/interpret.png"></td>
           <td style="text-align:center;" onTouchStart="onMainSongs(event, true)" onClick="onMainSongs(event)"><img id="imgMainSongs" src="img/song.png"></td>
-          <td style="text-align:center;" onTouchStart="onMainComposers(event, true)" onClick="onMainComposers(event)"><img id="imgMainComposers" src="img/composer.png"></td>
+          <td style="text-align:center;" onTouchStart="onMainAlbums(event, true)" onClick="onMainAlbums(event)"><img id="imgMainAlbums" src="img/album.png"></td>
         </tr></table>
       </div>
     </div>
@@ -606,16 +633,19 @@
           if(track.kind == 3) {
             unique = track.name;
           }
-
           if(showArtwork > 1) {
-            $('#artwork' + currentArtwork).stop().fadeOut(5000);
-            currentArtwork = showArtwork;
-            $('#artwork' + currentArtwork).attr('src', 'img/current' + currentArtwork + '.png?unique=' + unique+track.trackNumber).stop().fadeIn(5000);
-          } else {
-            $('#artwork' + currentArtwork).stop().fadeOut(1);
-            currentArtwork = 1;
-            $('#artwork1').attr('src', 'img/current1.png?unique=' + unique).stop().fadeIn(1);
+            unique += track.trackNumber;
           }
+
+          var fadeTime = 5000;
+
+          if(showArtwork == 1) {
+            fadeTime = 0;
+          }
+
+          $('#artwork' + currentArtwork).stop().fadeOut(fadeTime);
+          currentArtwork = showArtwork;
+          $('#artwork' + currentArtwork).attr('src', 'img/current' + currentArtwork + '.png?unique=' + unique+track.trackNumber).stop().fadeIn(fadeTime);
         }	
 
         // adjust time display
@@ -936,6 +966,7 @@
           case 1: $table = $('#tableAlbumTracks'); $div =$('#divAlbumTracklist'); break;
           case 2: $table = $('#tableArtistAlbum'); $div = $('#divArtistAlbums'); break;
           case 3: $table = $('#tablePlaylistAlbum'); $div = $('#divPlaylistAlbum'); break;
+          case 4: $table = $('#tableSearchedAlbum'); $div = $('#divSearchedAlbums'); break;
         }
         
         $table.find("tr").remove();
@@ -1446,6 +1477,26 @@
         e.preventDefault();
       }
       
+      function onMainAlbums(e, touched) {
+        if(touchScreen && !touched)
+          return;
+        
+        if($('#tabAlbums').css('display') != 'none') {
+          $('#inputSearchAlbums').val('').focus();
+          $("#tableAlbums tr").remove();          
+        } else {
+          resetMainMenu();
+          $('#imgMainAlbums').attr('src', 'img/album_active.png');
+          $('#tabAlbums').css('display', '');
+          
+          if($('#inputSearchAlbums').val() == '')
+            $('#inputSearchAlbums').focus();
+        } 
+        
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      }
+
       function onKeySearchArtist(e) {
         var val = $('#inputSearchArtists').val();
         
@@ -1479,6 +1530,19 @@
           
         setCookie("searchSong", val);
         itunes.search(5, val);
+      }
+
+      function onKeySearchAlbum(e) {
+        var val = $('#inputSearchAlbums').val();
+        
+        if(val.length < 3) {
+          removeCookie("searchAlbum");
+          $("#tableAlbums tr").remove();
+          return;
+        }
+          
+        setCookie("searchAlbum", val);
+        itunes.search(3, val);
       }
 
       // load last artist search string
@@ -1547,6 +1611,72 @@
           }, 10);
 
         markPlayingTrack();          
+      }
+
+      function searchResultAlbums(albums) { // one track per album
+        var $table = $('#tableAlbums');
+
+        $("#tableAlbums tr").remove();
+
+        for(var i=0; i<albums.length; i++) {
+          var al = albums[i];
+
+          var rating = "";
+            
+          for(r=0; r<al.albumRating; r+=20) 
+            rating+='&#x2605';
+
+          var $tr = $('<tr class="trTrack" style="border-bottom:4px solid #000;"><td class="tdTrackNumber"><img style="width:200px;" src="thumbs/cover~'+al.id_low+'~'+al.id_high+'~'+al.album+'~'+al.artist+'~'+al.compilation+'~'+al.trackCount+'~0~.png"></td><td class="tdTrackInfo"><span class="tdTrackName">'+al.name+'</span><br><span class="tdTrackAlbum">'+al.year+'</span> '+rating+'</td></tr>');
+          
+          (function() {
+            var al_ = al;
+            $tr.click( function() {
+              onSearchedAlbum(al_.id_low, al_.id_high, al_.name);
+            });
+          })();
+          
+          $table.append($tr);
+        }
+      }
+
+      function onSearchedAlbum(id_low, id_high, name) {
+        searchedAlbum = name;
+        setCookie("searchedAlbum", {id_low, id_high, name});
+
+        $("#tableSearchedAlbum tr").remove();
+        
+        itunes.albumTracks({"id_low":id_low, "id_high":id_high}, 4);
+        
+        $('#imgAlbumsBack').css('visibility', 'visible');
+        $('#tdAlbumsTitle').html(name);
+        $('#divSearchedAlbum').scrollTop(0);
+        $('#divSearchedAlbum').animate({"left":"0"});
+        $('#divAlbums').animate({"left":"-100vw"});
+      }
+
+      // inital load of last selected artists album
+      if($(window).width() < $(window).height()) {
+        var artistsAlbumCfg = getCookie("artistsAlbum");
+        if(artistsAlbumCfg) {
+          onArtistAlbum(artistsAlbumCfg.id_low, artistsAlbumCfg.id_high, artistsAlbumCfg.name);
+        }
+      }
+
+      function onAlbumsBack(touched) {
+        if(touchScreen && !touched)
+          return;
+          
+        removeCookie("searchedAlbum");
+
+        searchedAlbum = null;
+        $('#tdAlbumsTitle').html("Albums").css('font-size', 60);
+        $('#imgAlbumsBack').css('visibility', 'hidden');
+      
+        $('#divSearchedAlbum').animate({"left":"100vw"}, function() {
+          $("#tableSearchedAlbum tr").remove();
+        });
+      
+        $('#divAlbums').animate({"left":"0"});
       }
 
       function onArtist(id_low, id_high, name) {
@@ -1629,7 +1759,6 @@
         
           $('#divArtists').animate({"left":"0"});
         }   
-          
       }
       
       function onArtistAlbum(id_low, id_high, name) {

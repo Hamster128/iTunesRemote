@@ -49,7 +49,7 @@ for(var i = 1; i <= tracks.Count; i++) {
   if(Value.toLowerCase().indexOf(searchFor) == -1)
     continue;
 
-  if(type == '2' && idx.hasOwnProperty(Value))
+  if((type == '2' || type == '3') && idx.hasOwnProperty(Value))
     continue;
   
   var entry = {
@@ -64,9 +64,14 @@ for(var i = 1; i <= tracks.Count; i++) {
     "bitRate":track.BitRate,
     "duration":track.Duration,
     "rating":track.Rating,
+    "albumRating": track.AlbumRating,
+    "compilation":track.Compilation,
     "sampleRate":track.SampleRate,
     "comment":track.Comment,
-    "year":track.Year
+    "year":track.Year,
+    "trackCount":track.TrackCount,
+    "discCount":track.DiscCount,
+    "discNumber":track.DiscNumber
   };  
     
   Elements.push(entry);
