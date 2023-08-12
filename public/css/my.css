@@ -46,6 +46,10 @@
   font-size:50px;
 }
 
+.tdTrackArtist {
+  color:#000;
+}
+
 .tdTrackTime {
   color:#555;
   font-size:45px;

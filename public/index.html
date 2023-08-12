@@ -980,7 +980,7 @@
 
           var interpret = '';
           if( (tr.albumArtist != '' && tr.albumArtist != tr.artist) || tr.compilation) {
-            interpret = tr.artist + ' ';
+            interpret = '<span class="tdTrackArtist">' + tr.artist + '</span> ';
           }
 
           var duration = formatTime(tr.duration);
