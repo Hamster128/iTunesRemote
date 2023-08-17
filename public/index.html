@@ -748,6 +748,9 @@
                         
         markPlayingTrack();
         
+        csecond = 0;
+        state.position = 0;
+
         if(!dragPosActive)
           displayTime(csecond);
       });
@@ -980,7 +983,7 @@
 
           var interpret = '';
           if( (tr.albumArtist != '' && tr.albumArtist != tr.artist) || tr.compilation) {
-            interpret = '<span class="tdTrackArtist">' + tr.artist + '</span> ';
+            interpret = '<span class="tdTrackArtist">' + tr.artist + '</span><br>';
           }
 
           var duration = formatTime(tr.duration);

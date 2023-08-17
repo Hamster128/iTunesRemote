@@ -78,4 +78,42 @@ for(var i = 1; i <= tracks.Count; i++) {
   idx[Value] = true;
 }
 
+Elements.sort(function(a, b) {
+
+  var Value1, Value2;
+
+  switch(type) {
+    case '2': // artist
+      if(a.albumArtist != '') Value1 = a.albumArtist;
+      else                    Value1 = a.artist;   
+      if(b.albumArtist != '') Value2 = b.albumArtist;
+      else                    Value2 = b.artist;   
+      break;
+    
+    case '3': // album
+       Value1 =  a.year;    
+       Value2 =  b.year;
+       break;     
+
+    case '4': // Composer
+      Value1 =  a.album; 
+      Value2 =  b.album; 
+      break;
+
+    case '5': // Song
+      Value1 =  a.name;
+      Value2 =  b.name;
+      break;
+  }
+
+  if(Value1 > Value2)
+    return(1);
+    
+  if(Value1 < Value2)
+    return(-1);
+    
+  return(0);
+});
+
+
 WScript.echo(JSON.stringify(Elements));
