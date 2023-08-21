@@ -18,12 +18,14 @@ if(list)
 
 var idLow = 0;
 var idHigh = 0;
+var duration = 0;
 var track = iTunesApp.CurrentTrack;
 
 if(track) {
   idLow = iTunesApp.ITObjectPersistentIDLow(track);
   idHigh = iTunesApp.ITObjectPersistentIDHigh(track);
+  duration = track.Duration;
 }
 
-WScript.echo(state+';'+pos+';'+vol+';'+shuffle+';'+repeat+';'+idLow+';'+idHigh);
+WScript.echo(state+';'+pos+';'+vol+';'+shuffle+';'+repeat+';'+idLow+';'+idHigh+';'+duration);
 

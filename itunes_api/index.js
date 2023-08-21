@@ -117,7 +117,8 @@ let doNextInQueue = function() {
 					shuffle: parseInt(s[3]),
 					repeat: parseInt(s[4]),
 					id_low: parseInt(s[5]),
-					id_high: parseInt(s[6])
+					id_high: parseInt(s[6]),
+					duration: parseInt(s[7])
 				});
 			}
 

@@ -362,7 +362,7 @@
       var unique = 0;
       var track = {duration:0};
       var touchScreen = isTouchDevice();
-      var timer = 0;
+      var timer = 0, actSecsAt = -1, actSecsLeft = -1;
       var actPosition = 0, actDuration = 0;
       var dragPos = false, dragPosActive = false, dragVolume = false, dragVolumeActive =  false, actVolume = 0, actPosition = 0;
       var dragVolumeActiveTimeout = 0, dragPosActiveTimeout = 0, repeatActiveTimeout = 0, shuffleActiveTimeout = 0;
@@ -381,6 +381,7 @@
       var currentArtwork = 0, showArtwork = 0;
       var loadingArtwork = false;
 
+
       window.onerror = function(err) {
         console.log(err);
         debug(err + ' '  + err.stack);
@@ -398,8 +399,6 @@
       }
       
       function formatTime(secs) {
-
-        secs = Math.floor(secs);
 
         var days = Math.floor(secs / 60 / 60 / 24);
         secs -= days * 60 * 60 * 24;
@@ -436,22 +435,26 @@
       function displayTime(position) {
         actPosition = position;
         
-		    if(position % 10 == 0) {
-	        $('#tdAt').html(formatTime(position / 10));
+        var secsAt = Math.floor(position / 10);
+
+		    if(secsAt != actSecsAt) {
+	        $('#tdAt').html(formatTime(secsAt));
+          actSecsAt = secsAt;
 		    }
         
-        if(track.name) {
-          var left = track.duration * 10 - position;
+        var left = state.duration * 10 - position;
+        
+        if(left < 0)
+          left = 0;
+
+        var secsLeft = Math.floor(left / 10);
           
-          if(left < 0)
-            left = 0;
-            
-		      if(left % 10 == 0) {
-            $('#tdLeft').html('-'+formatTime(left / 10));
-		      }
-		  
-          $('#divTime').css('width', (position / track.duration * 10)+'%');
+        if(secsLeft != actSecsLeft) {
+          $('#tdLeft').html('-'+formatTime(secsLeft));
+          actSecsLeft = secsLeft;
         }
+    
+        $('#divTime').css('width', (position / state.duration * 10)+'%');
       }
                   
       function displayVolume(volume) {
@@ -461,7 +464,7 @@
       
       function onSecond() {
         csecond ++;
-        csecond = Math.min(csecond, track.duration * 10);
+        csecond = Math.min(csecond, state.duration * 10);
         
         if(csecond < state.position * 10) {
           if(interval != 90) {
@@ -644,16 +647,18 @@
 
           var fadeTime = 5000;
 
-          if(showArtwork == 1) {
-            if(loadingArtwork)
-              return;
+          (function() {
+            if(showArtwork == 1) {
+              if(loadingArtwork)
+                return;
 
-            fadeTime = 0;
-          }
+              fadeTime = 0;
+            }
 
-          $('#artwork' + currentArtwork).stop().fadeOut(fadeTime);
-          currentArtwork = showArtwork;
-          $('#artwork' + currentArtwork).attr('src', 'img/current' + currentArtwork + '.png?unique=' + unique+track.trackNumber).stop().fadeIn(fadeTime);
+            $('#artwork' + currentArtwork).stop().fadeOut(fadeTime);
+            currentArtwork = showArtwork;
+            $('#artwork' + currentArtwork).attr('src', 'img/current' + currentArtwork + '.png?unique=' + unique+track.trackNumber).stop().fadeIn(fadeTime);
+          })();
         }	
 
         // adjust time display
@@ -728,15 +733,11 @@
           unique = track.name;
         }
 
-        $('#artwork1').stop().fadeOut(0);
         $('#artwork1').bind('load', function() {
           loadingArtwork = false;
-
-          if(showArtwork == 1) {
-            if(currentArtwork != 1) {
-              $('#artwork' + currentArtwork).stop().fadeOut(0);
-              currentArtwork = 1;
-            }
+          if(showArtwork == 1 && currentArtwork != 1) {
+            $('#artwork' + currentArtwork).stop().fadeOut(0);
+            currentArtwork = 1;
             $('#artwork1').stop().fadeIn(0);
           }
         });
