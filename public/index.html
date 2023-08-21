@@ -378,7 +378,8 @@
       var actAudioDeviceSource = '';
       var actAudioDeviceMute = 0;
       var msgHideTimeout;
-      var currentArtwork = 0;
+      var currentArtwork = 0, showArtwork = 0;
+      var loadingArtwork = false;
 
       window.onerror = function(err) {
         console.log(err);
@@ -459,8 +460,8 @@
       }
       
       function onSecond() {
-        if(csecond < track.duration * 10)
-          csecond ++;
+        csecond ++;
+        csecond = Math.min(csecond, track.duration * 10);
         
         if(csecond < state.position * 10) {
           if(interval != 90) {
@@ -593,6 +594,10 @@
 
       socket.on('state', function(msg){
       
+        if(msg.id_low != track.id_low || msg.id_high != track.id_high) {
+          return;
+        }
+
         var oldState = state.state;
       
         state = msg;
@@ -621,7 +626,7 @@
         }
 
         // show next artwork?
-        var showArtwork = Math.ceil(msg.position / track.duration * Math.min(10, track.artworks));
+        showArtwork = Math.ceil(msg.position / track.duration * Math.min(10, track.artworks));
     
         if(track.kind == 3 || !showArtwork) {	// radio
           showArtwork = 1;
@@ -640,6 +645,9 @@
           var fadeTime = 5000;
 
           if(showArtwork == 1) {
+            if(loadingArtwork)
+              return;
+
             fadeTime = 0;
           }
 
@@ -685,6 +693,7 @@
       });
 
       socket.on('track', function(msg){
+
         track = msg;
         
         if(!track.name) {
@@ -719,7 +728,21 @@
           unique = track.name;
         }
 
+        $('#artwork1').stop().fadeOut(0);
+        $('#artwork1').bind('load', function() {
+          loadingArtwork = false;
+
+          if(showArtwork == 1) {
+            if(currentArtwork != 1) {
+              $('#artwork' + currentArtwork).stop().fadeOut(0);
+              currentArtwork = 1;
+            }
+            $('#artwork1').stop().fadeIn(0);
+          }
+        });
+        loadingArtwork = true;
         $('#artwork1').attr('src', 'img/current1.png?unique=' + unique);
+
         $('#artwork_album').attr('src', 'img/current1.png?unique=' + unique);
         $('#albumName').html(msg.album);        
         if(msg.albumArtist != '') $('#albumArtist').html(msg.albumArtist);
@@ -746,13 +769,7 @@
           $('#tdAlbum').css('visibility', 'hidden');
         }
                         
-        markPlayingTrack();
-        
-        csecond = 0;
-        state.position = 0;
-
-        if(!dragPosActive)
-          displayTime(csecond);
+        markPlayingTrack();        
       });
           
       function displayRating(rating) {

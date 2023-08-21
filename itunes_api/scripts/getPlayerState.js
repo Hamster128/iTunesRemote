@@ -12,8 +12,18 @@ if(state)
 
 if(list)
 {
-  shuffle = list.Shuffle?1:0;
+  shuffle = list.Shuffle ? 1 : 0;
   repeat = list.SongRepeat;
 }
 
-WScript.echo(state+';'+pos+';'+vol+';'+shuffle+';'+repeat);
+var idLow = 0;
+var idHigh = 0;
+var track = iTunesApp.CurrentTrack;
+
+if(track) {
+  idLow = iTunesApp.ITObjectPersistentIDLow(track);
+  idHigh = iTunesApp.ITObjectPersistentIDHigh(track);
+}
+
+WScript.echo(state+';'+pos+';'+vol+';'+shuffle+';'+repeat+';'+idLow+';'+idHigh);
+
