@@ -920,39 +920,51 @@
         if(touchScreen && !touched)
           return;
 
-        var pos;
-
         if(ev.changedTouches)
-          pos = ev.changedTouches[0].pageX - $('#tdVolume').offset().left;
+          dragVolume = ev.changedTouches[0].pageX - $('#tdVolume').offset().left;
         else
-          pos = ev.offsetX;
+          dragVolume = ev.offsetX;
 
         var widthTouchArea = $('#tdVolume')[0].offsetWidth;
         var widthSlider    = $('#divVolumeSlider')[0].offsetWidth;
 
-        pos -= widthTouchArea - widthSlider;
+        dragVolume -= widthTouchArea - widthSlider;
+        dragVolume = Math.round(dragVolume / widthSlider * 100);
+        startVolume = actVolume;
 
-        var volume = Math.round(pos / widthSlider * 100);
-        
-        if(volume > 100)
-          volume = 100;
-        
-        if(volume < 0)
-          volume = 0;
-          
-        displayVolume(volume);
-        itunes.setSoundVolume(actVolume);
-        
         clearTimeout(dragVolumeActiveTimeout);
         dragVolumeActive = true;
-        dragVolume = true;
       }
       
       function onVolumeMove(touched, ev) {
         if(!dragVolume || (touchScreen && !touched))
           return;
 
-        onVolume(touched, ev);
+          var pos;
+
+          if(ev.changedTouches)
+            pos = ev.changedTouches[0].pageX - $('#tdVolume').offset().left;
+          else
+            pos = ev.offsetX;
+
+          var widthTouchArea = $('#tdVolume')[0].offsetWidth;
+          var widthSlider    = $('#divVolumeSlider')[0].offsetWidth;
+
+          pos -= widthTouchArea - widthSlider;
+
+          var volume = Math.round(pos / widthSlider * 100);
+
+          volume = startVolume + volume - dragVolume;
+
+          if(volume > 100)
+            volume = 100;
+
+          if(volume < 0)
+            volume = 0;
+            
+          displayVolume(volume);
+          itunes.setSoundVolume(actVolume);
+
       }
       
       function endVolume(touched) {
