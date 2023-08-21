@@ -378,7 +378,7 @@
       var actAudioDeviceSource = '';
       var actAudioDeviceMute = 0;
       var msgHideTimeout;
-      var currentArtwork = 0, showArtwork = 0;
+      var currentArtwork = 1, showArtwork = 0;
       var loadingArtwork = false;
 
 
@@ -447,7 +447,7 @@
         if(left < 0)
           left = 0;
 
-        var secsLeft = Math.floor(left / 10);
+        var secsLeft = Math.ceil(left / 10);
           
         if(secsLeft != actSecsLeft) {
           $('#tdLeft').html('-'+formatTime(secsLeft));
@@ -597,10 +597,6 @@
 
       socket.on('state', function(msg){
       
-        if(msg.id_low != track.id_low || msg.id_high != track.id_high) {
-          return;
-        }
-
         var oldState = state.state;
       
         state = msg;
@@ -629,37 +625,40 @@
         }
 
         // show next artwork?
-        showArtwork = Math.ceil(msg.position / track.duration * Math.min(10, track.artworks));
+        if(state.id_low == track.id_low && state.id_high == track.id_high) {
+
+          showArtwork = Math.ceil(state.position / track.duration * Math.min(10, track.artworks));
     
-        if(track.kind == 3 || !showArtwork) {	// radio
-          showArtwork = 1;
-        }
-
-        if(showArtwork != currentArtwork) {
-
-          var unique = track.album + track.trackCount;
-          if(track.kind == 3) {
-            unique = track.name;
-          }
-          if(showArtwork > 1) {
-            unique += track.trackNumber;
+          if(track.kind == 3 || !showArtwork) {	// radio
+            showArtwork = 1;
           }
 
-          var fadeTime = 5000;
+          if(showArtwork != currentArtwork) {
 
-          (function() {
-            if(showArtwork == 1) {
-              if(loadingArtwork)
-                return;
-
-              fadeTime = 0;
+            var unique = track.album + track.trackCount;
+            if(track.kind == 3) {
+              unique = track.name;
+            }
+            if(showArtwork > 1) {
+              unique += track.trackNumber;
             }
 
-            $('#artwork' + currentArtwork).stop().fadeOut(fadeTime);
-            currentArtwork = showArtwork;
-            $('#artwork' + currentArtwork).attr('src', 'img/current' + currentArtwork + '.png?unique=' + unique+track.trackNumber).stop().fadeIn(fadeTime);
-          })();
-        }	
+            var fadeTime = 5000;
+
+            (function() {
+              if(showArtwork == 1) {
+                if(loadingArtwork)
+                  return;
+
+                fadeTime = 0;
+              }
+
+              $('#artwork' + currentArtwork).stop().fadeOut(fadeTime);
+              currentArtwork = showArtwork;
+              $('#artwork' + currentArtwork).attr('src', 'img/current' + currentArtwork + '.png?unique=' + unique+track.trackNumber).stop().fadeIn(fadeTime);
+            })();
+          }	
+        }
 
         // adjust time display
         if(csecond < state.position * 10 - 10 || 
