@@ -142,10 +142,10 @@ app.get('/thumbs/cover~*', function(req, res){
   doNextArtworkQueue();
 });
 
-io.on('connection', function(socket){
+io.on('connection', function(socket) {
   connections ++;
 
-  socket.on('disconnect', function(){
+  socket.on('disconnect', function() {
     connections --;
   });
   
@@ -283,8 +283,8 @@ io.on('connection', function(socket){
     if(!iTunesEnabled)
       return;
       
-    itunes.playlistTracks(msg, function(tracks){
-      socket.emit('playlistTracks', tracks);
+    itunes.playlistTracks(msg, function(tracks) {
+      socket.emit('playlistTracks', {tracks: tracks, context: msg.context});
     });
   });
   
@@ -319,11 +319,20 @@ io.on('connection', function(socket){
     });
   });
   
+  socket.searchReqNr = 0;
   socket.on('search', function(msg){
     if(!iTunesEnabled)
       return;
       
-    itunes.search(msg.type, msg.val, function(list){
+    socket.searchReqNr ++;
+    let searchReqNr = socket.searchReqNr;
+
+    itunes.search(msg.type, msg.val, function(list) {
+
+      if(searchReqNr != socket.searchReqNr) {
+        return;
+      }
+      
       socket.emit('searchResult', {type:msg.type, list:list});
     });
   });

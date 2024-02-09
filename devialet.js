@@ -16,7 +16,7 @@ const CMD_SOURCE  = 0x0005;
 const CMD_MUTE    = 0x0107;
 const CMD_UNMUTE  = 0x0007;
 
-let packet_cnt = Math.random() * 65535, cmd_cnt = Math.random() * 65535;
+let packet_cnt = Math.floor(Math.random() * 65535), cmd_cnt = Math.floor(Math.random() * 65535);
 let onStatus = function() {};
 let sendQueue = [], sleep;
 let status = {vol:0};
@@ -208,6 +208,10 @@ module.exports = {
     msg.writeUInt16BE(++cmd_cnt, 4);
     msg.writeUInt16BE( CMD_VOL, 6);
     msg.writeUInt16BE( val, 8);
+
+    if(cmd_cnt >= 65535) {
+      cmd_cnt = 0;
+    }
 
     sendPacket(msg);
 

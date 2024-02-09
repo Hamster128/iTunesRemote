@@ -17,6 +17,12 @@ var skip = parseInt(WScript.Arguments.Item(2));
 var mode = parseInt(WScript.Arguments.Item(3));
 var sortOrder = parseInt(WScript.Arguments.Item(4));
 var idx = {};
+var count = 50;
+
+if(skip < 0) {
+  count = skip * -1;
+  skip = 0;
+}
 
 while(num_sources) {
   var source=sources.Item(num_sources);
@@ -49,7 +55,7 @@ while(num_sources) {
             continue;
           }
 
-          if(list.length == 50) {
+          if(list.length == count) {
             list.push({
               "name":"load more",
               "toBeContinued":true
@@ -83,7 +89,7 @@ while(num_sources) {
             continue;
           }
         
-          if(list.length == 50) {
+          if(list.length == count) {
             list.push({
               "name":"load more",
               "toBeContinued":true
