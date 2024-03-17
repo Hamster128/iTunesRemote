@@ -68,12 +68,16 @@ for(var i = 1; i <= tracks.Count; i++) {
     "compilation":track.Compilation,
     "sampleRate":track.SampleRate,
     "comment":track.Comment,
+    "kind":track.Kind,
     "year":track.Year,
     "trackCount":track.TrackCount,
     "discCount":track.DiscCount,
     "discNumber":track.DiscNumber
   };  
     
+  if(track.ratingKind)	// auto rating
+    entry.rating = 0;
+
   Elements.push(entry);
   idx[Value] = true;
 }

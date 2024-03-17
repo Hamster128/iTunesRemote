@@ -36,6 +36,7 @@ var audioDeviceCheckInterval = 500;
 var continueAfterMute = false;
 var iTunesEnabled = true;
 var lastTrack;
+let lastAirPlaySongStamp;
 
 app.use(express.static(__dirname + '/public'));
 
@@ -488,14 +489,22 @@ function systemRequiredOff() {
 }
 
 function getState() {
-  if(!connections && state.initialized && !systemRequiredInterval) {
+  if( (!connections && state.initialized && !systemRequiredInterval) ||
+      lastAirPlaySongStamp) 
+    {
     if(getStateTimer)
       getStateTimer = setTimeout(getState, 500);
     return;
   }
 
   itunes.getPlayerState(function(rsp){
-    
+
+    if(lastAirPlaySongStamp) {
+      if(getStateTimer)
+        getStateTimer = setTimeout(getState, 500);
+      return;
+      }
+  
     if(state.state != rsp.state || state.position != rsp.position || newPosSet) {
       var oldPos = state.position;
       
@@ -525,6 +534,11 @@ function getState() {
       if(!getStateTimer)
         return;
             
+      if(lastAirPlaySongStamp) {
+        getStateTimer = setTimeout(getState, 500);
+        return;
+        }
+  
       state.initialized = true;
             
       if(rsp && (rsp.name != track.name || rsp.artist != track.artist || rsp.album != track.album)) {
@@ -873,8 +887,79 @@ function checkComputerWasSleeping() {
   }
 }
 
+
+function checkShairPort4W() {
+
+
+  try {
+    var stats = fs.statSync("current_song.txt");
+    var mtime = stats.mtime;
+
+    if(stats.mtime.valueOf() == lastAirPlaySongStamp) {
+      return;
+    }
+
+    let data = fs.readFileSync('current_song.txt').toString();
+
+    let lines = data.split("\n");
+
+    if(lines.length != 3) {
+      return;
+    }
+
+    if(lines[1] == "Werbung" || lines[2] == "Werbung") {
+      devialet.mute(true);
+    } else if(track.name == "Werbung" || track.artist == "Werbung") {
+      setTimeout(function() {
+        devialet.mute(false);
+      }, 800);
+    }
+
+    if(iTunesEnabled) {
+      itunes.pause();
+    }
+
+    lastAirPlaySongStamp = stats.mtime.valueOf();
+
+    track = {
+      name: lines[2],
+      artist: lines[1],
+      albumArtist: lines[1],
+      album: lines[0],
+      id_low: 0,
+      id_high: 0,
+      sampleRate: 44100,
+      composer: "",
+      bitRate: 0,
+      playedCount: 0,
+      comment: "AirPlay",
+      rating: 0,
+      trackCount: 0,
+      year: 1970,
+      kind: 999             // airplay
+    }
+
+    console.log(`AirPlay track:"${track.name}" artist:"${track.artist}" album:"${track.album}"`)
+
+    io.sockets.emit('track', track);
+
+  } catch(e) {
+
+    if(!lastAirPlaySongStamp) {
+      return;
+    }
+
+    lastAirPlaySongStamp = undefined;
+
+    console.log(`AirPlay stopped`);
+
+    io.sockets.emit('track', {name: 0});
+  }
+}
+
 setInterval(function() {
   checkComputerWasSleeping();
+  checkShairPort4W();
   
   var currentTime = (new Date()).getTime();
   lastCheckSleepTime = currentTime;

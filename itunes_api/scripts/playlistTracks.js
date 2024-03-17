@@ -123,6 +123,9 @@ while(num_sources) {
             "i":i
           };
       
+          if(track.ratingKind)	// auto rating
+            tr.rating = 0;
+    
           list.push(tr);
         }
       }

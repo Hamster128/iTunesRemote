@@ -43,6 +43,9 @@ else{
 			"volumeAdjustment": track.VolumeAdjustment
 		};
 		
+		if(track.ratingKind)	// auto rating
+			tr.rating = 0;
+
 		WScript.echo(JSON.stringify(tr));
 	/*  
 		var lists = track.Playlists;

@@ -39,8 +39,12 @@ if(otrack)
       "rating":track.Rating,
       "sampleRate":track.SampleRate,
       "comment":track.Comment,
+      "kind":track.Kind,
       "year":track.Year
     };
+
+    if(track.ratingKind)	// auto rating
+      tr.rating = 0;
 
     list.push(tr);
   }

@@ -253,7 +253,7 @@
           
           <!-- player main controls -->
           <tr class="vertOnly" style="height:200px; background-color:rgba(0,0,0,.5);"><td>
-            <table style="width:100%; height:100%">
+            <table id="tablePlayerControls" style="width:100%; height:100%">
               <tr>
                 <td style="text-align:center;" id="tdPrev" onTouchStart="onPrev(true)" onMouseDown="onPrev()" onTouchEnd="endPrev(true)" onMouseUp="endPrev()"><img src="img/prev.png" style="cursor:pointer;"></td>
                 <td style="text-align:center;" id="tdPlay" onTouchStart="onPlay(true)" onMouseDown="onPlay()" onTouchEnd="endPlay(true)" onMouseUp="endPlay()"><img id="btnPlay" src="img/play.png" style="cursor:pointer;"></td>
@@ -263,7 +263,7 @@
           </td></tr>
           
           <!-- player volume -->
-          <tr class="vertOnly" style="height:100px; background-color:rgba(0,0,0,.5);"><td>
+          <tr class="vertOnly" style="height:150px; background-color:rgba(0,0,0,.5);"><td>
             <table style="width:100%; height:100%;">
               <tr>
                 <td style="width:5%;"></td>
@@ -282,7 +282,7 @@
           
           <!-- player menu -->
           <tr class="vertOnly" style="height:150px; background-color:rgba(0,0,0,.5);"><td>
-            <table style="width:100%"><tr>
+            <table id="tablePlayerMenu" style="width:100%"><tr>
               <td id="tdAlbum" style="text-align:center;" onTouchStart="onAlbum(event, true)" onClick="onAlbum(event)"><img src="img/album.png"></td>
               <td style="text-align:center;" onTouchStart="onRepeat(true)" onClick="onRepeat()" id="tdRepeat"><img src="img/repeat.png" id="imgRepeat"></td>
               <td style="text-align:center;"><img src="img/queue.png"></td>
@@ -346,18 +346,17 @@
 
     <!-- no track page -->
     <div id="divNoTrack" class="landscapeOnly darkBackground" style="z-index:3; height:100vh; width:100vw; position:absolute;">
-      <div style="height:100vh; width:100vw; position:absolute;">
-      </div>
       <div style="height:100vh; width:100vw; position:absolute; color:#FFF;">
         <img src="img/itunes.png" style="position:absolute; top:0; bottom:0; left:0; right:0; margin:auto;">
       </div>
     </div>
 
     <!-- audio mute page -->
-    <div id="divAudioDeviceMute" class="darkBackground" style="z-index:4; display:none; height:100vh; width:100vw; position:absolute;">
+    <div id="divAudioDeviceMute" style="z-index:4; display:none; height:100vh; width:100vw; position:absolute;">
       <div style="height:100vh; width:100vw; position:absolute;">
+        <img src="img/dark_background.png" style="position:absolute; top:0; bottom:0; left:0; right:0; height:100vh; width:100vw; margin:auto;">
       </div>
-      <div style="height:100vh; width:100vw; position:absolute; color:#FFF;">
+      <div style="height:100vh; width:100vw; position:absolute;">
         <img src="img/mute.png" style="position:absolute; top:0; bottom:0; left:0; right:0; margin:auto;">
       </div>
     </div>
@@ -392,7 +391,7 @@
       var settings = {};
       var state = {state:0, position:0};
       var unique = 0;
-      var track = {duration:0};
+      var track = {duration:0, kind:3};
       var touchScreen = isTouchDevice();
       var timer = 0, actSecsAt = -1, actSecsLeft = -1;
       var actPosition = 0, actDuration = 0;
@@ -803,6 +802,9 @@
         if(track.kind == 3) {
           unique = track.name;
         }
+        if(track.kind == 999) {
+          unique = Math.random().toString();
+        }
 
         $('#artwork1').bind('load', function() {
           loadingArtwork = false;
@@ -832,7 +834,7 @@
 */
         displayRating(track.rating);
                         
-        if(track.kind != 3) {
+        if(track.kind != 3 && track.kind != 999) {   // radio or airplay
           $('#tablePosition').css('display', '');
           $('#tdAlbum').css('visibility', 'visible');
         }
@@ -841,6 +843,14 @@
           $('#tdAlbum').css('visibility', 'hidden');
         }
                         
+        if(track.kind == 999) {
+          $('#tablePlayerControls').css('display', 'none');
+          $('#tablePlayerMenu').css('display', 'none');
+        } else {
+          $('#tablePlayerControls').css('display', '');
+          $('#tablePlayerMenu').css('display', '');
+        }
+
         markPlayingTrack();        
         firstTrackMsg = false;
       });
@@ -1218,7 +1228,9 @@
 
         itunes.setDSP(settings.dsp);
         itunes.settings(settings);
-        itunes.setPlayerPosition(Math.max(0, state.position - 3));
+
+        if(track.kind != 3 && track.kind != 999) // no radio, airplay
+          itunes.setPlayerPosition(Math.max(0, state.position - 3));
       }
 
       function onShuffle(touched) {
