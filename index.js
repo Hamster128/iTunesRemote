@@ -907,19 +907,19 @@ function checkShairPort4W() {
       return;
     }
 
+    lastAirPlaySongStamp = stats.mtime.valueOf();
+
     if(lines[1] == "Werbung" || lines[2] == "Werbung") {
       devialet.mute(true);
     } else if(track.name == "Werbung" || track.artist == "Werbung") {
       setTimeout(function() {
         devialet.mute(false);
-      }, 800);
+      }, 900);
     }
 
     if(iTunesEnabled) {
       itunes.pause();
     }
-
-    lastAirPlaySongStamp = stats.mtime.valueOf();
 
     track = {
       name: lines[2],
