@@ -207,3 +207,60 @@
   -ms-user-select: none; /* IE 10 and IE 11 */
   user-select: none; /* Standard syntax */
 }
+
+.popupContainer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+.popupMenu {
+  position: absolute;
+  background-color: white;
+  border: 1px solid black;
+  z-index: 1000;
+  font-size: 50px;
+}
+
+.popupMenuItem {  
+  padding: 25px;
+  cursor: pointer;
+  border: 1px solid;
+}
+
+.popupMenuItem:hover {  
+  background-color: #CCF;
+}
+
+.titleMessage {
+  position: absolute;
+  background: #333;
+  color: white;
+  width: 100vw;
+  height: 150px;
+  z-index: 900;
+  font-size: 50px;
+  display: none;
+}
+.titleMessage table {
+  border-spacing: 20px;
+}
+.titleMessage button {
+  font-size: 50px; 
+  padding: 20px;
+}
+
+.not-selectable {
+  user-select: none; /* Prevent text selection */
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer */
+}
+
+.trackDisabled {
+  opacity: 0.5; /* Makes the row semi-transparent */
+  filter: grayscale(100%); /* Makes the row appear gray */  
+  
+}

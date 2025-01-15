@@ -59,44 +59,45 @@ while(num_sources) {
 	{
 	  var pl = source.Playlists.ItemByPersistentID(WScript.Arguments.Item(1), WScript.Arguments.Item(0));
 
-	  if(pl) {
-	    if(idx == -1) {
-				pl.Shuffle = true;
-   	    pl.PlayFirstTrack();
-	      break;
-	    } else {
-				pl.Shuffle = false;
-			}
-	  
-      var tmpl = findPlayList("zRemotePro");
+    if(!pl) 
+      break;
+    
+    if(idx == -1) {
+      pl.Shuffle = true;
+      pl.PlayFirstTrack();
+      break;
+    } else {
+      pl.Shuffle = false;
+    }
+  
+    var tmpl = findPlayList("zRemotePro");
 
-      if(tmpl)
-        tmpl.Delete();
-	  	  
-      tmpl = iTunesApp.CreatePlaylist("zRemotePro");
-      tmpl.Shuffle = false;
-
-      var tracks = pl.Tracks;
-	    	    
-	    for(var i=idx+1; i<=tracks.Count; i++) {
-	    
-        if(sortOrder)
-          track = tracks.ItemByPlayOrder(tracks.Count-i+1);
-        else
-          track = tracks.ItemByPlayOrder(i);
-	    
-        tmpl.AddTrack(track);
-
-	      if(i==idx+1) {
-          tmpl.PlayFirstTrack();
-        }
-          
-        if(tmpl.Tracks.Count == 128)
-          break;
-	    }
+    if(tmpl)
+      tmpl.Delete();
       
-  	  break;
-	  }
+    tmpl = iTunesApp.CreatePlaylist("zRemotePro");
+    tmpl.Shuffle = false;
+
+    var tracks = pl.Tracks;
+          
+    for(var i=idx+1; i<=tracks.Count; i++) {
+    
+      if(sortOrder)
+        track = tracks.ItemByPlayOrder(tracks.Count-i+1);
+      else
+        track = tracks.ItemByPlayOrder(i);
+    
+      tmpl.AddTrack(track);
+
+      if(i==idx+1) {
+        tmpl.PlayFirstTrack();
+      }
+        
+      if(tmpl.Tracks.Count == 128)
+        break;
+    }
+    
+    break;
 	}
 		
 	num_sources--;

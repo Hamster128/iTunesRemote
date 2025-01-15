@@ -203,7 +203,7 @@ io.on('connection', function(socket) {
       return;
       
     if(state.volumeDigits) {
-      let db = (msg.newVolume - 80) / 2; // -40 - +10
+      let db = (msg.newVolume - 75) / 2; // -35 - +15
       db = Math.floor(db * 2) / 2;  // round to 0.5
       devialet.vol(db);
   } else {
@@ -289,6 +289,17 @@ io.on('connection', function(socket) {
     });
   });
   
+  socket.on('renameList', function(msg){
+    if(!iTunesEnabled)
+      return;
+      
+    itunes.renameList(msg, function() {
+      itunes.playLists(function(lists){
+        io.sockets.emit('playLists', lists);
+      });
+    });
+  });
+  
   socket.on('playTrackInList', function(msg){
     console.log("on playTrackInList", msg);
 
@@ -309,6 +320,14 @@ io.on('connection', function(socket) {
       
     itunes.setRating(msg);
     track.rating = msg.rating;
+  });
+  
+  socket.on('setEnabled', function(msg){
+    if(!iTunesEnabled)
+      return;
+      
+    itunes.setEnabled(msg);
+    track.enabled = msg.enabled;
   });
   
   socket.on('tracksPlaylists', function(track){
@@ -343,6 +362,8 @@ io.on('connection', function(socket) {
       return;
       
     itunes.removeTrackFromList(msg, function() {
+      io.sockets.emit('removedTrackFromList', msg);
+
       itunes.tracksPlaylists(msg.track, function(lists){
         io.sockets.emit('tracksPlaylists', lists);
       });
@@ -354,9 +375,20 @@ io.on('connection', function(socket) {
       return;
       
     itunes.addTrackToList(msg, function() {
+      io.sockets.emit('addedTrackToList', msg);
+
       itunes.tracksPlaylists(msg.track, function(lists){
         io.sockets.emit('tracksPlaylists', lists);
       });
+    });
+  });
+  
+  socket.on('moveTrackInList', function(msg){
+    if(!iTunesEnabled)
+      return;
+      
+    itunes.moveTrackInList(msg, function() {
+      io.sockets.emit('movedTrackInList', msg);
     });
   });
   
@@ -372,6 +404,7 @@ io.on('connection', function(socket) {
   socket.on('settings', function(msg){
     settings = msg;
     fs.writeFileSync("settings.json", JSON.stringify(msg, null, 2));
+    io.sockets.emit('settings', settings);
   });
 
   socket.on('eq_apo', function(msg){
@@ -383,8 +416,6 @@ io.on('connection', function(socket) {
     } else {
       fs.copyFileSync("C:\\Program Files\\EqualizerAPO\\config\\off.txt", "C:\\Program Files\\EqualizerAPO\\config\\config.txt");
     }
-
-    fs.writeFileSync("settings.json", JSON.stringify(msg, null, 2));
   });
 
   socket.on('log', function(msg){
@@ -429,7 +460,7 @@ http.on('listening', function() {
 http.listen(port);
 
 function setDevialetInfo() {
-  state.volume = devialetVol * 2 + 80;  // -40 - +10
+  state.volume = devialetVol * 2 + 75;  // -35 - +15
   
   if(state.volume < 0)
     state.volume = 0;
@@ -541,8 +572,10 @@ function getState() {
   
       state.initialized = true;
             
-      if(rsp && (rsp.name != track.name || rsp.artist != track.artist || rsp.album != track.album)) {
+      if(rsp && (rsp.name != track.name || rsp.artist != track.artist || rsp.album != track.album || rsp.enabled != track.enabled)) {
         track = rsp;
+
+        console.log(JSON.stringify(track));
 
         if(track.kind == 3) { // radio
           track.artworks = 1;
@@ -606,6 +639,9 @@ function getState() {
               return;
               
             if(!resp.found) {
+
+              console.log(`itunes.currentArtwork() not found!`);
+
               track.artworks = 1;
 
               var is = fs.createReadStream('public/img/no_cover.png')
@@ -777,7 +813,7 @@ function checkAudioDevice() {
       else {
         console.log(settings.wait4AudioDevice+' switched to '+audioDeviceState.source);
         
-        if('devialetOtherSourceDevice' in settings) {
+        if(audioDeviceState.state == 2 && 'devialetOtherSourceDevice' in settings) {
 
           // check if configured audio device is in list
           for(var l = 0; l < lines.length; l ++) {
@@ -796,6 +832,7 @@ function checkAudioDevice() {
             
             if(device == settings.devialetOtherSourceDevice) {
               // set configured audio device as windows default audio device
+              console.log(settings.devialetOtherSourceDevice+' set as active device...');
               execFile('EndPointController.exe', [l], {}, function(err, stdout, stderr) {});
               break;
             }
@@ -934,6 +971,7 @@ function checkShairPort4W() {
       playedCount: 0,
       comment: "AirPlay",
       rating: 0,
+      enabled: true,
       trackCount: 0,
       year: 1970,
       kind: 999             // airplay

@@ -64,6 +64,7 @@ for(var i = 1; i <= tracks.Count; i++) {
     "bitRate":track.BitRate,
     "duration":track.Duration,
     "rating":track.Rating,
+    "enabled":track.Enabled,
     "albumRating": track.AlbumRating,
     "compilation":track.Compilation,
     "sampleRate":track.SampleRate,

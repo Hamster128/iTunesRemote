@@ -355,7 +355,7 @@ let doNextInQueue = function() {
 		executeScript(
 			'playTrackInList.js ' + job.id.id_low + ' ' + job.id.id_high + ' ' + job.id.idx + ' ' + job.id.sortOrder,
 			function(err, stdout, stderr) {
-				if (err) console.log('itunes.playTrackInList error ', err);
+				console.log('itunes.playTrackInList ', stdout.toString());
 
 				if (job.cb) job.cb();
 
@@ -376,6 +376,19 @@ let doNextInQueue = function() {
 			queueActive = false;
 			doNextInQueue();
 		});
+	} else if (job.func == 'setEnabled') {
+		executeScript('setEnabled.js ' + job.r.id_low + ' ' + job.r.id_high + ' ' + job.r.enabled, function(
+			err,
+			stdout,
+			stderr
+		) {
+			if (err) console.log('itunes.setEnabled error ', err);
+
+			if (job.cb) job.cb();
+
+			queueActive = false;
+			doNextInQueue();
+		});
 	} else if (job.func == 'removeTrackFromList') {
 		executeScript(
 			'removeTrackFromList.js ' +
@@ -388,6 +401,44 @@ let doNextInQueue = function() {
 				job.msg.id_high,
 			function(err, stdout, stderr) {
 				if (err) console.log('itunes.removeTrackFromList error ', err);
+
+				if (job.cb) job.cb();
+
+				queueActive = false;
+				doNextInQueue();
+			}
+		);
+	} else if (job.func == 'renameList') {
+		executeScript(
+			'renameList.js ' +
+				job.msg.id_low +
+				' ' +
+				job.msg.id_high +
+				' "' +
+				job.msg.name + '"',
+			function(err, stdout, stderr) {
+				if (err) console.log('itunes.renameList error ', err);
+
+				if (job.cb) job.cb();
+
+				queueActive = false;
+				doNextInQueue();
+			}
+		);
+	} else if (job.func == 'moveTrackInList') {
+		executeScript(
+			'moveTrackInList.js ' +
+				job.msg.id_low +
+				' ' +
+				job.msg.id_high +
+        ' ' +
+        job.msg.from +
+        ' ' +
+        job.msg.to +
+        ' ' +
+        job.msg.sortOrder,
+			function(err, stdout, stderr) {
+				if (err) console.log('itunes.moveTrackInList error ', err);
 
 				if (job.cb) job.cb();
 
@@ -530,6 +581,11 @@ exports.tracksPlaylists = function(track, cb) {
 	doNextInQueue();
 };
 
+exports.renameList = function(msg, cb) {
+	queue.push({ func: 'renameList', cb: cb, msg: msg });
+	doNextInQueue();
+};
+
 exports.playlistTracks = function(id, cb) {
 	queue.push({ func: 'playlistTracks', cb: cb, id: id });
 	doNextInQueue();
@@ -555,6 +611,11 @@ exports.setRating = function(r, cb) {
 	doNextInQueue();
 };
 
+exports.setEnabled = function(r, cb) {
+	queue.push({ func: 'setEnabled', cb: cb, r: r });
+	doNextInQueue();
+};
+
 exports.removeTrackFromList = function(msg, cb) {
 	queue.push({ func: 'removeTrackFromList', cb: cb, msg: msg });
 	doNextInQueue();
@@ -562,6 +623,11 @@ exports.removeTrackFromList = function(msg, cb) {
 
 exports.addTrackToList = function(msg, cb) {
 	queue.push({ func: 'addTrackToList', cb: cb, msg: msg });
+	doNextInQueue();
+};
+
+exports.moveTrackInList = function(msg, cb) {
+	queue.push({ func: 'moveTrackInList', cb: cb, msg: msg });
 	doNextInQueue();
 };
 

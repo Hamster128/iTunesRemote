@@ -12,14 +12,17 @@ while(num_sources) {
 	{
 	  var pl = source.Playlists.ItemByPersistentID(WScript.Arguments.Item(3), WScript.Arguments.Item(2));
 
-	  if(pl) {
-	    var otrack = mainLibrary.Tracks.ItemByPersistentID(WScript.Arguments.Item(1), WScript.Arguments.Item(0));
-
-      if(otrack)
-	      pl.AddTrack(otrack);
-    }
+    if(!pl) 
+      break;
     
-      
+    var otrack = mainLibrary.Tracks.ItemByPersistentID(WScript.Arguments.Item(1), WScript.Arguments.Item(0));
+
+    if(!otrack)
+      break;
+
+    // add to the end
+    pl.AddTrack(otrack);
+
     break;
 	}
 		

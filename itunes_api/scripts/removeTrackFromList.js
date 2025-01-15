@@ -10,15 +10,13 @@ while(num_sources) {
 	{
 	  var pl = source.Playlists.ItemByPersistentID(WScript.Arguments.Item(3), WScript.Arguments.Item(2));
 
-	  if(pl) {
-      var tracks = pl.Tracks;
-      
-      var track = tracks.ItemByPersistentID(WScript.Arguments.Item(1), WScript.Arguments.Item(0));
-      
-      track.Delete();
-    }
+    if(!pl) 
+     break;
+
+    var track = pl.Tracks.ItemByPersistentID(WScript.Arguments.Item(1), WScript.Arguments.Item(0));
     
-      
+    track.Delete();
+    
     break;
 	}
 		

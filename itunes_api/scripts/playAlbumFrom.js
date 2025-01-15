@@ -70,8 +70,13 @@ if(otrack)
 
   tmpl = iTunesApp.CreatePlaylist("zRemotePro");
     
-  for(var i=0; i<list.length; i++)
+  for(var i=0; i<list.length; i++) {
+    if(!list[i].Enabled) {
+      continue;
+    }
+
     tmpl.AddTrack(list[i]);
+  }
   
   iTunesApp.SoundVolume = vol;
   tmpl.Shuffle = false;
@@ -82,6 +87,11 @@ if(otrack)
     iTunesApp.Pause();
   
     for(var i=0; i<list.length; i++) {
+
+      if(!list[i].Enabled) {
+        continue;
+      }
+
       if(list[i].TrackNumber == trackNr &&
          list[i].DiscNumber  == discNr)
         break;

@@ -9,8 +9,3 @@ for(var v=vol; v>=0; v-=20)
 iTunesApp.NextTrack();
 
 iTunesApp.SoundVolume = vol;
-
-//var state = iTunesApp.PlayerState;
-
-//if(state == 0)
-//  iTunesApp.Play();

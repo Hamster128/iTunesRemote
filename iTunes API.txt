@@ -166,8 +166,18 @@ trackID         Property   int trackID () {get}
 Tracks          Property   IITTrackCollection Tracks () {get}                       
 Visible         Property   bool Visible () {get}  
 
-$itunes.CurrentPlaylist.Tracks | Get-member
 
+$itunes.CurrentPlaylist.Tracks | Get-member
+https://www.joshkunz.com/iTunesControl/interfaceIITTrackCollection.html
+
+HRESULT 	Count ([out, retval] long *count) 	                                                    Returns the number of tracks in the collection.
+HRESULT 	Item ([in] long index,[out, retval] IITTrack **iTrack) 	                                Returns an IITTrack object corresponding to the given index (1-based).
+HRESULT 	ItemByPlayOrder ([in] long index,[out, retval] IITTrack **iTrack) 	                    Returns an IITTrack object corresponding to the given index (1-based).
+HRESULT 	ItemByName ([in] BSTR name,[out, retval] IITTrack **iTrack) 	                          Returns an IITTrack object with the specified name.
+HRESULT 	_NewEnum ([out, retval] IUnknown **iEnumerator) 	                                      Returns an IEnumVARIANT object which can enumerate the collection.
+HRESULT 	ItemByPersistentID ([in] long highID,[in] long lowID,[out, retval] IITTrack **iTrack) 	Returns an IITTrack object with the specified persistent ID. See the documentation on IITObject for more information on persistent IDs.
+ 	
+@($itunes.CurrentPlaylist.Tracks)[1] | Get-member
 Name               MemberType Definition                               
 ----               ---------- ----------                               
 AddArtworkFromFile Method     IITArtwork AddArtworkFromFile (string)   
@@ -249,4 +259,3 @@ VideoKind          Property   ITVideoKind VideoKind () {get} {set}
 VolumeAdjustment   Property   int VolumeAdjustment () {get} {set}      
 Year               Property   int Year () {get} {set}                  
 
-@($itunes.CurrentPlaylist.Tracks)[1] | Get-member

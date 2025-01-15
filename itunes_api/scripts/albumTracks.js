@@ -37,6 +37,7 @@ if(otrack)
       "bitRate":track.BitRate,
       "duration":track.Duration,
       "rating":track.Rating,
+      "enabled":track.Enabled,
       "sampleRate":track.SampleRate,
       "comment":track.Comment,
       "kind":track.Kind,

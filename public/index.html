@@ -16,9 +16,9 @@
   </head>
   <body class="darkBackground" style="margin:0; position:fixed; overflow:hidden; font-family:Arial;" onMouseUp="endVolume(false); endPosition(false);" onTouchEnd="endVolume(true); endPosition(true);">
     <script src="js/socket.io_4.7.1.min.js"></script>
-    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/jquery-3.7.1.min.js"></script>
     <script src="js/itunes_api.js"></script>
-    
+
     <div id="divMain" class="vertOnly" style="width:100vw; height:100vh; position:absolute; background:#EEE;">
 
       <!-- play lists page -->
@@ -26,7 +26,7 @@
       
         <div style="position:absolute; left:0px; top:0px; right:0px; height:150px;">
           <table style="width:100%; height:150px; border-bottom:4px solid #555;" cellspacing=0><tr>
-            <td style="width:200px;" onTouchStart="onPlaylistsBack('Play', true)" onClick="onPlaylistsBack('Play')"><img id="imgPlaylistsBack" style="visibility:hidden;" src="img/back.png"></td>
+            <td style="width:200px;" onTouchStart="onPlaylistsBack('Play', true)" onClick="onPlaylistsBack('Play')"><span id="spanNewList" style="display:none;">New</span><img id="imgPlaylistsBack" style="visibility:hidden;" src="img/back.png"></td>
             <td style="text-align:center; font-size:60px; font-weight:bold;" id="tdPlaylistsTitle">Playlists</td>
             <td class="tdNow" style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="onNow(true)" onClick="onNow()">Now</td>
           </tr></table>
@@ -174,7 +174,8 @@
        24.0 dB
       </div>
       <div class="landscapeOnly prevent-select" style="z-index:2; position:absolute; left:30px; top:130px">
-        <img id="imgHiRes" src="img/hires.png" style="width:75; height:75px; display:none;">
+        <img id="imgDSPbatch" src="img/audio_lense.png" style="width:75; height:75px; display:block; margin-bottom:10px;">
+        <img id="imgHiRes" src="img/hires.png" style="width:75; height:75px; display:block;">
       </div> 
     
       <div class="artworkWidth" style="height:100%; position:absolute; overflow:hidden; text-align:center;">
@@ -227,7 +228,7 @@
             <div id="divTrackInfo" class="vertOnly" style="width:100%; height:100%; background:rgba(0,0,0,.7); color:#FFF; opacity:0;" onTouchStart="onTrackInfo(event, true)" onClick="onTrackInfo(event)">
               <table style="width:80%; margin:0 auto; font-size:50px;">
                 <tr style="height:80px;"><td></td></tr>
-                <tr><td id="trackRating" style="text-align:center; font-size:120px;"></td></tr>
+                <tr><td id="trackRating" style="text-align:center; font-size:100px;"></td></tr>
                 <tr><td id="trackQuality"></td></tr>
                 <tr><td id="trackBitRate"></td></tr>
                 <tr><td id="trackSampleRate"></td></tr>
@@ -290,7 +291,7 @@
               <td style="text-align:center;" onTouchStart="onTracksPlaylists(event, true)" onClick="onTracksPlaylists(event)"><img src="img/list.png"></td>
             </tr></table>
           </td></tr>
-          <tr class="vertOnly" style="height:40px;"><td></td></tr>
+          <tr class="vertOnly" style="height:80px;"><td></td></tr>
         </table>
       </div>
     </div>    
@@ -330,7 +331,7 @@
         <table style="width:100%; height:150px; border-bottom:4px solid #555;" cellspacing=0><tr>
           <td style="width:200px;"></td>
           <td style="text-align:center; font-size:60px; font-weight:bold;">Playlists</td>
-          <td style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="tracksPlaylistsBack(event, true)" onClick="tracksPlaylists(event)">Back</td>
+          <td style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="tracksPlaylistsBack(event, true)" onClick="tracksPlaylistsBack(event)">Back</td>
         </tr></table>
       </div>
       <div id="divTracksPlaylistsList" class="scrollable" style="position:absolute; left:0px; top:150px; right:0px; bottom:0px; overflow:scroll; -webkit-overflow-scrolling:touch;">
@@ -383,7 +384,49 @@
       </div>
     </div>
 
-    <div id="divDebug" style="z-index:90; pointer-events: none; height:100vh; width:100vw; position:absolute; color:#FF0; font-size: 30px;">
+    <div id="divDebug" style="z-index:90; pointer-events: none; height:100vh; width:100vw; position:absolute; color:#FF0; font-size: 30px;">      
+    </div>
+
+    <div id="popupContainer" class="popupContainer not-selectable" style="display:none;">
+      <div class="popupMenu">
+        <div class="popupMenuItem" onTouchStart="onPopupRemove()" onclick="onPopupRemove()">Remove</div>
+        <div class="popupMenuItem" onTouchStart="onPopupMove()" onclick="onPopupMove()">Move</div>
+      </div>
+    </div>
+
+    <div id="popupContainerList" class="popupContainer not-selectable" style="display:none;">
+      <div class="popupMenu">
+        <div class="popupMenuItem" onTouchStart="onPopupRename()" onclick="onPopupRename()">Rename</div>
+      </div>
+    </div>
+
+    <div id="moveMessage" class="titleMessage">
+      <table style="width:100%;"><tr>
+        <td>Insert before?</td>
+        <td style="text-align: right;"><button onclick="onMoveCancel()">Cancel</button></td>
+      </tr></table>
+    </div>
+
+    <div id="renameMessage" class="titleMessage">
+      <table style="width:100%;"><tr>
+        <td style="width:100%; padding-right: 50px;"><input type="text" id="inputName" style="width:100%; font-size:40px;"></td>
+        <td style="text-align: right;"><button onclick="onRenameCancel()">Cancel</button></td>
+        <td style="text-align: right;"><button onclick="onRenameOk()">&nbsp;&nbsp;Ok&nbsp;&nbsp;</button></td>
+      </tr></table>
+    </div>
+
+    <div id="movingMessage" class="titleMessage">
+      <table style="width:100%;"><tr>
+        <td>Moving...</td>
+      </tr></table>
+    </div>
+
+    <div id="confirmRemove" class="titleMessage">
+      <table style="width:100%;"><tr>
+        <td>Remove?</td>
+        <td style="text-align: right;"><button onclick="onRemoveCancel()">Cancel</button></td>
+        <td style="text-align: right;"><button onclick="onRemoveOk()">&nbsp;&nbsp;Ok&nbsp;&nbsp;</button></td>
+      </tr></table>
     </div>
 
     <script>
@@ -412,6 +455,7 @@
       var loadingArtwork = false, tracksAlbumOpen = false;
       var onScrolledTimeouts = {};
       var startupRequests = 0;
+      var sourceTrack, sourceList;
 
       var playlist = {
         "Play": {"id_low":0, "id_high":0},
@@ -601,10 +645,14 @@
       socket.on('settings', function(msg){
         settings = msg;
 
+        console.log('settings', settings);
+
         if(settings.dsp) {
           $('#imgDSP').attr("src", "img/dsp_on.png");
+          $("#imgDSPbatch").show();
         } else {
           $('#imgDSP').attr("src", "img/dsp_off.png");
+          $("#imgDSPbatch").hide();
         }
       });
       
@@ -639,12 +687,18 @@
             $('#imgPower').attr('src', 'img/power_grey.png');
             $('#divDeviceSource').html('');
             $('#divNoAudioDevice').show(); 
+            if($(window).width() > $(window).height()) {
+              window.close();
+            }
             break;
             
           case 0: // wrong source
             $('#imgPower').attr('src', 'img/power_grey.png');
             $('#divDeviceSource').html(msg.source);
-            $('#divNoAudioDevice').show(); 
+            $('#divNoAudioDevice').show();
+            if($(window).width() > $(window).height()) {
+              window.close();
+            }
             break;
             
           case 1: // starting
@@ -765,6 +819,8 @@
 
         track = msg;
         
+        console.log(JSON.stringify(track));
+
         if(!track.name) {
 
           $("#imgHiRes").hide();
@@ -836,11 +892,12 @@
         $('#artist').html(msg.id_low);
         $('#album').html(msg.id_high);
 */
-        displayRating(track.rating);
+        displayRating(track.enabled, track.rating);
                         
         if(track.kind != 3 && track.kind != 999) {   // radio or airplay
           $('#tablePosition').css('display', '');
-          $('#tdAlbum').css('visibility', 'visible');
+          $('#tdAlbum').css('visibility', 'visible')
+          ;
         }
         else {
           $('#tablePosition').css('display', 'none');
@@ -863,20 +920,41 @@
         }
       });
           
-      function displayRating(rating) {
-        var srating = '<span style="cursor:pointer;" onTouchStart="onRate(event, 0, true)" onClick="onRate(event, 0, true)">&nbsp;&nbsp;&nbsp;</span>';
+      function displayRating(enabled, rating) {
+
+        var img = 'img/next.png';
+
+        if(!enabled) {
+          img = 'img/play.png';
+        }
+
+        var srating = '<img style="cursor:pointer;" onTouchStart="onEnabled(event, true)" onClick="onEnabled(event, false)" src="' + img + '">';
+        
+        srating += '<span style="cursor:pointer;" onTouchStart="onRate(event, 0, true)" onClick="onRate(event, 0, false)">&nbsp;&nbsp;&nbsp;</span>';
         
         for(r=0; r<rating; r+=20)
-          srating+='<span style="cursor:pointer;" onTouchStart="onRate(event, '+(r+20)+', true)" onClick="onRate(event, '+(r+20)+', true)">&#x2605</span>';
+          srating+='<span style="cursor:pointer;" onTouchStart="onRate(event, '+(r+20)+', true)" onClick="onRate(event, '+(r+20)+', false)">&#x2605</span>';
           
         for(; r<100; r+=20)
-          srating+='<span style="cursor:pointer;" onTouchStart="onRate(event, '+(r+20)+', true)" onClick="onRate(event, '+(r+20)+', true)">&#x2606</span>';
+          srating+='<span style="cursor:pointer;" onTouchStart="onRate(event, '+(r+20)+', true)" onClick="onRate(event, '+(r+20)+', false)">&#x2606</span>';
         
         srating += '&nbsp&nbsp;&nbsp;';
         
         $('#trackRating').html(srating);
+
+        // update track in lists
+        srating = '';
+        for(r=0; r < rating; r+=20)
+            srating += '&#x2605';
+
+        $('.trackRating_' + track.id_low + '_' + track.id_high).html(srating);
+
+        if(enabled)
+          $('.trTrack_' + track.id_low + '_' + track.id_high).removeClass('trackDisabled');
+        else
+          $('.trTrack_' + track.id_low + '_' + track.id_high).addClass('trackDisabled');
       }
-          
+
       function onRate(e, rating, touched) {
         if(touchScreen && !touched)
           return;
@@ -886,11 +964,30 @@
           return;
           
         itunes.setRating(track.id_low, track.id_high, rating);
-        displayRating(rating);
+        displayRating(track.enabled, rating);
 
         e.stopImmediatePropagation();
       }
-                
+      
+      function onEnabled(e, touched) {
+        if(touchScreen && !touched)
+          return;
+
+        var o = $('#divTrackInfo').css('opacity');
+        if(o == '0')
+          return;
+
+        console.log('setEnabled ' + (!track.enabled));
+
+        itunes.setEnabled(track.id_low, track.id_high, !track.enabled);
+        displayRating(!track.enabled, track.rating);
+
+        if(track.enabled)
+          itunes.nextTrack();
+
+        e.stopImmediatePropagation();
+      }
+
       function onPlay(touched) {
         if(touchScreen && !touched)
           return;
@@ -1098,10 +1195,12 @@
         
         for(var i=0; i<tracks.length; i++) {
           var tr = tracks[i];
-          var rating = "";
+          var rating = '<span class="trackRating_' + tr.id_low + '_' + tr.id_high + '">';
           
           for(r=0; r<tr.rating; r+=20)
             rating+='&#x2605';
+
+          rating += '</span>';
 
           var interpret = '';
           if( (tr.albumArtist != '' && tr.albumArtist != tr.artist) || tr.compilation) {
@@ -1109,8 +1208,13 @@
           }
 
           var duration = formatTime(tr.duration);
-          var oTr = $.parseHTML('<tr class="trTrack" style="border-bottom:4px solid #000;" onClick="onAlbumTrack('+tr.id_low+', '+tr.id_high+')"><td class="tdTrackNumber"><div class="divAlbumTrackNr_'+tr.id_low+'_'+tr.id_high+'">'+tr.trackNumber+'</div><div class="divAlbumTrackPlay_'+tr.id_low+'_'+tr.id_high+'"><img src="img/playing.png"></div></td><td class="tdTrackInfo"><span class="tdTrackName">'+tr.name+'</span><br>'+interpret+duration+' '+rating+'</td></tr>');
-          $table.append(oTr);
+          var $tr = $('<tr class="trTrack trTrack_' + tr.id_low + '_' + tr.id_high + '" style="border-bottom:4px solid #000;" onClick="onAlbumTrack('+tr.id_low+', '+tr.id_high+')"><td class="tdTrackNumber"><div class="divAlbumTrackNr_'+tr.id_low+'_'+tr.id_high+'">'+tr.trackNumber+'</div><div class="divAlbumTrackPlay_'+tr.id_low+'_'+tr.id_high+'"><img src="img/playing.png"></div></td><td class="tdTrackInfo"><span class="tdTrackName">'+tr.name+'</span><br>'+interpret+duration+' '+rating+'</td></tr>');
+
+          if(!tr.enabled) {
+            $tr.addClass('trackDisabled');
+          }
+
+          $table.append($tr);
         }
 
         markPlayingTrack();
@@ -1261,6 +1365,12 @@
       }
         
       function onAlbumTrack(id_low, id_high) {
+
+        if($('.trTrack_' + id_low + '_' + id_high).hasClass('trackDisabled')) {
+          itunes.setEnabled(id_low, id_high, true);
+          $('.trTrack_' + id_low + '_' + id_high).removeClass('trackDisabled');
+        }
+
         track.id_low = id_low;
         track.id_high = id_high;
         markPlayingTrack();
@@ -1314,7 +1424,7 @@
           e.preventDefault();
         }
       }
-      
+
       socket.on('playLists', function(lists){
 
         var $auto = $('#tableAutolists');
@@ -1345,9 +1455,34 @@
             type  = 'Auto';
           }
 
-          var line = '<tr class="trTrack" style="border-bottom:4px solid #000;" onClick="onPlaylist('+li.id_low+', '+li.id_high+', \''+li.name+'\', \'' + type + '\')"><td class="tdTrackNumber"><img src="img/playlist_'+icon+'.png"></td><td class="tdTrackInfo"><span class="tdTrackName">'+li.name+'</span><br>'+li.count+' Items, '+formatTime(li.duration)+'</td></tr>';
+          var $line = $('<tr class="trTrack not-selectable" style="border-bottom:4px solid #000;"><td class="tdTrackNumber"><img src="img/playlist_'+icon+'.png"></td><td class="tdTrackInfo"><span class="tdTrackName">'+li.name+'</span><br>'+li.count+' Items, '+formatTime(li.duration)+'</td></tr>');
 
-          $list.append(line);
+          $line.data("id_low" ,li.id_low);
+          $line.data("id_high",li.id_high);
+          $line.data("name"   ,li.name);
+          $line.data("type"   ,type);
+
+          onClickOrHold($line, function(e) { // click
+            var $item = $(this);
+            onPlaylist($item.data("id_low"), $item.data("id_high") , $item.data("name"), $item.data("type"));
+
+          }, function(e) {                   // hold
+            var $item = $(this);
+
+            if($item.data("type") == 'Auto') {
+              return;
+            }
+
+            sourceList = {
+              id_low : $item.data('id_low'),
+              id_high: $item.data('id_high'),
+              name   : $item.data('name')
+            };
+
+            showPopupMenu('#popupContainerList', e.pageX, e.pageY);
+          });
+
+          $list.append($line);
         }
 
         if($(window).width() < $(window).height()) {
@@ -1382,20 +1517,22 @@
 
         setStorage(type + "list", {id_low, id_high, name});
 
-        playlist[type].mode = 0;
-        playlist[type].sortOrder = 0;
-        playlist[type].name = name;
-        playlist[type].id_low  = id_low;
-        playlist[type].id_high = id_high;
+        var pl = playlist[type];
+
+        pl.mode = 0;
+        pl.sortOrder = 0;
+        pl.name = name;
+        pl.id_low  = id_low;
+        pl.id_high = id_high;
       
         var key = 'pl_'+id_low+'_'+id_high;
         
         if( settings.playlists[key] ) {
           if( settings.playlists[key]['mode'] )
-            playlist[type].mode = settings.playlists[key].mode;
+            pl.mode = settings.playlists[key].mode;
             
           if( settings.playlists[key]['sortOrder'] )
-            playlist[type].sortOrder = settings.playlists[key].sortOrder;
+            pl.sortOrder = settings.playlists[key].sortOrder;
         }
         
         $("#table" + type + "list tr").remove();
@@ -1407,8 +1544,16 @@
           console.log('onPlaylist', type, skip);
         }
 
-        playlist[type].loaded = 0;
-        itunes.playlistTracks(playlist[type].id_low, playlist[type].id_high, skip, playlist[type].mode, playlist[type].sortOrder, type);
+        pl.loaded = 0;
+
+        itunes.playlistTracks(
+          pl.id_low, 
+          pl.id_high, 
+          skip, 
+          pl.mode, 
+          pl.sortOrder, 
+          type
+        );
         
         var animateOptions = {};
         if(startupRequests) {
@@ -1426,7 +1571,17 @@
       
       function onPlaylistLoadMore(type) {
         $('#table' + type + 'list .loadMore').css("background-color", "#0AF");
-        itunes.playlistTracks(playlist[type].id_low, playlist[type].id_high, playlist[type].loaded, playlist[type].mode, playlist[type].sortOrder, type);
+
+        var pl = playlist[type];
+
+        itunes.playlistTracks(
+          pl.id_low, 
+          pl.id_high, 
+          pl.loaded, 
+          pl.mode, 
+          pl.sortOrder, 
+          type
+        );
       }
 
       function onPlaylistsBack(type, touched) {
@@ -1465,41 +1620,61 @@
       function onPlaylistSortOrder(type) {
         $('#table' + type + 'list tr').remove();
         
-        if(playlist[type].sortOrder)
-          playlist[type].sortOrder = 0;
+        var pl = playlist[type];
+
+        if(pl.sortOrder)
+          pl.sortOrder = 0;
         else
-          playlist[type].sortOrder = 1;
+          pl.sortOrder = 1;
         
-        var key = 'pl_'+playlist[type].id_low+'_'+playlist[type].id_high;
+        var key = 'pl_' + pl.id_low + '_' + pl.id_high;
         
         if( !settings.playlists[key] )
           settings.playlists[key] = {};
         
-        settings.playlists[key].sortOrder = playlist[type].sortOrder;
+        settings.playlists[key].sortOrder = pl.sortOrder;
         itunes.settings(settings);
         
-        playlist[type].loaded = 0;
-        itunes.playlistTracks(playlist[type].id_low, playlist[type].id_high, 0, playlist[type].mode, playlist[type].sortOrder, type);
+        pl.loaded = 0;
+
+        itunes.playlistTracks(
+          pl.id_low, 
+          pl.id_high, 
+          0, 
+          pl.mode, 
+          pl.sortOrder, 
+          type
+        );
       }
 
       function onPlaylistMode(type) {
         $('#table' + type + 'list tr').remove();
         
-        if(playlist[type].mode)
-          playlist[type].mode = 0;
+        var pl = playlist[type];
+
+        if(pl.mode)
+          pl.mode = 0;
         else
-          playlist[type].mode = 1;
+          pl.mode = 1;
         
-        var key = 'pl_'+playlist[type].id_low+'_'+playlist[type].id_high;
+        var key = 'pl_' + pl.id_low + '_' + pl.id_high;
         
         if( !settings.playlists[key] )
           settings.playlists[key] = {};
         
-        settings.playlists[key].mode = playlist[type].mode;
+        settings.playlists[key].mode = pl.mode;
         itunes.settings(settings);
         
-        playlist[type].loaded = 0;
-        itunes.playlistTracks(playlist[type].id_low, playlist[type].id_high, 0, playlist[type].mode, playlist[type].sortOrder, type);
+        pl.loaded = 0;
+
+        itunes.playlistTracks(
+          pl.id_low, 
+          pl.id_high, 
+          0, 
+          pl.mode, 
+          pl.sortOrder, 
+          type
+        );
       }
       
       socket.on('playlistTracks', function(msg){
@@ -1522,40 +1697,13 @@
           if(tr.toBeContinued) {
             $table.append('<tr class="trTrack loadMore" style="border-bottom:4px solid #000;" onClick="onPlaylistLoadMore(\'' + msg.context + '\')"><td class="tdTrackNumber"></td><td class="tdTrackInfo"><span class="tdTrackName">'+tr.name+'</span><td class="tdTrackInfo"></td></tr>');
           } else {
-            var rating = "";
-            
-            for(r=0; r<tr.rating; r+=20)
-              rating+='&#x2605';
-            
-            if(playlist[msg.context].mode) {   // list by album
-              var artist = tr.artist;
-              
-              if(tr.compilation)
-                artist = 'Various';
-            
-              var $tr = $('<tr class="trTrack" style="border-bottom:4px solid #000;"><td class="tdTrackNumber"><img style="width:200px;" src="thumbs/cover~'+tr.id_low+'~'+tr.id_high+'~'+tr.name+'~'+tr.artist+'~'+tr.compilation+'~'+tr.trackCount+'~0~.png"></td><td class="tdTrackInfo" colspan=2><span class="tdTrackName">'+tr.name+'</span><br><span class="tdTrackAlbum">'+artist+' '+tr.year+'</span> '+rating+'</td></tr>');
-              
-              (function() {
-                var al_ = tr;
-                $tr.click( function() {
-                  onPlaylistAlbum(al_.id_low, al_.id_high, al_.name, msg.context);
-                });
-              })();
-              
-              $table.append($tr);
-            } else {              // list by track
-              var duration = formatTime(tr.duration);
-              
-              if(tr.kind == 3)  // radio
-                $table.append('<tr class="trTrack" style="border-bottom:4px solid #000;" onClick="onPlaylistTrack('+playlist[msg.context].loaded+', \'' + msg.context + '\')"><td class="tdTrackNumber"><img style="width:200px;" src="thumbs/cover~'+tr.id_low+'~'+tr.id_high+'~'+ tr.name + '~no_artist~false~0~'+tr.kind+'~.png"></td><td class="tdTrackInfo"><span class="tdTrackName">'+tr.name+'</span><br>'+rating+'</td><td class="tdTrackInfo"><div class="divAlbumTrackPlay_'+tr.id_low+'_'+tr.id_high+'"><img src="img/playing.png"></div></td></tr>');
-              else
-                $table.append('<tr class="trTrack" style="border-bottom:4px solid #000;" onClick="onPlaylistTrack('+playlist[msg.context].loaded+', \'' + msg.context + '\')"><td class="tdTrackNumber"><img style="width:200px;" src="thumbs/cover~'+tr.id_low+'~'+tr.id_high+'~'+ tr.album +'~'+tr.artist+'~'+tr.compilation+'~'+tr.trackCount+'~'+tr.kind+'~.png"></td><td class="tdTrackInfo"><span class="tdTrackName">'+tr.name+'</span><br><span class="tdTrackAlbum">'+tr.album+' - '+tr.artist+'</span><br>'+duration+' '+rating+'</td><td class="tdTrackInfo"><div class="divAlbumTrackPlay_'+tr.id_low+'_'+tr.id_high+'"><img src="img/playing.png"></div></td></tr>');
-            }
+            var $tr = makeTrackEntry(tr, msg.context);
+            $table.append($tr);
             playlist[msg.context].loaded++;
           }
           
           if(i==0)
-            $('#table' + msg.context + 'list .loadMore').remove();
+            $table.find('.loadMore').remove();
         }
         
         setStorage(msg.context + 'listLoaded', playlist[msg.context].loaded);
@@ -1576,14 +1724,293 @@
         }
 
       });
+
+      function onClickOrHold($item, onClick, onLongPress) {
+
+        var longPressTimer = null;
+
+        var down = "mousedown", up = "mouseup";
+
+        if(typeof window.ontouchstart !== "undefined") {  // ios fires both
+          down = "touchstart";
+          up = "touchend";
+        }
+
+        $item.on(down, function (e) {
+          var me = this;
+
+          longPressTimer = setTimeout(function () {
+            longPressTimer = null;
+            onLongPress.bind(me)(e);
+          }, 500); // Long-press detection
+
+        }).on('mouseleave touchcancel touchmove', function (e) {
+          if(longPressTimer) {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+          }
+        }).on(up, function (e) {
+          if(!longPressTimer) {
+            return;
+          }
+
+          clearTimeout(longPressTimer);
+          longPressTimer = null;
+
+          onClick.bind(this)(e);
+        });
+      }
       
+      function makeTrackEntry(tr, context) {
+        var rating = '<span class="trackRating_' + tr.id_low + '_' + tr.id_high + '">';
+            
+        for(r=0; r<tr.rating; r+=20)
+          rating+='&#x2605';
+
+        rating += '</span>';
+        
+        if(playlist[context].mode) {   // list by album
+          var artist = tr.artist;
+          
+          if(tr.compilation)
+            artist = 'Various';
+        
+          var $tr = $('<tr class="trTrack trTrack_' + tr.id_low + '_' + tr.id_high + ' not-selectable" style="border-bottom:4px solid #000;"><td class="tdTrackNumber"><img style="width:200px;" src="thumbs/cover~'+tr.id_low+'~'+tr.id_high+'~'+tr.name+'~'+tr.artist+'~'+tr.compilation+'~'+tr.trackCount+'~0~.png"></td><td class="tdTrackInfo" colspan=2><span class="tdTrackName">'+tr.name+'</span><br><span class="tdTrackAlbum">'+artist+' '+tr.year+'</span> '+rating+'</td></tr>');
+
+          $tr.data("id_low", tr.id_low);
+          $tr.data("id_high", tr.id_high);
+          $tr.data("name", tr.name);
+          $tr.data("context", context);
+
+          $tr.click( function() {
+            onPlaylistAlbum(
+              $(this).data("id_low"), 
+              $(this).data("id_high"), 
+              $(this).data("name"), 
+              $(this).data("context")
+            );
+          });
+          
+          return $tr;
+        } 
+        
+        // list by track
+        var duration = formatTime(tr.duration);
+        var $tr;
+        
+        if(tr.kind == 3)  // radio
+          $tr = $('<tr class="trTrack not-selectable trTack_'+tr.id_low+'_'+tr.id_high+'" style="border-bottom:4px solid #000;"><td class="tdTrackNumber"><img style="width:200px;" src="thumbs/cover~'+tr.id_low+'~'+tr.id_high+'~'+ tr.name + '~no_artist~false~0~'+tr.kind+'~.png"></td><td class="tdTrackInfo"><span class="tdTrackName">'+tr.name+'</span><br>'+rating+'</td><td class="tdTrackInfo"><div class="divAlbumTrackPlay_'+tr.id_low+'_'+tr.id_high+'"><img src="img/playing.png"></div></td></tr>');
+        else
+          $tr = $('<tr class="trTrack not-selectable trTrack_'+tr.id_low+'_'+tr.id_high+'" style="border-bottom:4px solid #000;"><td class="tdTrackNumber"><img style="width:200px;" src="thumbs/cover~'+tr.id_low+'~'+tr.id_high+'~'+ tr.album +'~'+tr.artist+'~'+tr.compilation+'~'+tr.trackCount+'~'+tr.kind+'~.png"></td><td class="tdTrackInfo"><span class="tdTrackName">'+tr.name+'</span><br><span class="tdTrackAlbum">'+tr.album+' - '+tr.artist+'</span><br>'+duration+' '+rating+'</td><td class="tdTrackInfo"><div class="divAlbumTrackPlay_'+tr.id_low+'_'+tr.id_high+'"><img src="img/playing.png"></div></td></tr>');
+
+        if(!tr.enabled) {
+          $tr.addClass('trackDisabled');
+        }
+          
+        $tr.data('idx', playlist[context].loaded);
+        $tr.data("id_low", tr.id_low);
+        $tr.data("id_high", tr.id_high);
+        $tr.data("context", context);
+
+        onClickOrHold($tr, function(e) {  // click
+
+          if($('#moveMessage').is(':visible')) {
+
+            $('#moveMessage').hide();
+            $('#movingMessage').show();
+
+            var pl = playlist[context];
+
+            itunes.moveTrackInList({
+              "id_low":pl.id_low, 
+              "id_high":pl.id_high, 
+              "from": sourceTrack.idx, 
+              "to": $tr.data('idx'), 
+              "sortOrder": pl.sortOrder
+            });
+            return;
+          }
+
+          onPlaylistTrack($tr.data('idx'), context);
+
+        }, function(e) {                  // hold
+
+          sourceTrack = {
+              idx: $tr.data('idx'),
+              id_low: $tr.data('id_low'),
+              id_high: $tr.data('id_high'),
+              context: $tr.data('context')
+            };
+
+          showPopupMenu('#popupContainer', e.pageX, e.pageY);
+        });
+
+        return $tr;
+      }
+
+      socket.on('addedTrackToList', function(msg) {
+        if(playlist['Play'].id_low != msg.id_low || playlist['Play'].id_high != msg.id_high)
+          return;
+
+        var $table = $('#tablePlaylist');
+
+        if(playlist['Play'].sortOrder) {
+
+          var $tr = makeTrackEntry(msg.track, 'Play');
+          $table.find('tr:nth-child(1)').after($tr);
+          playlist['Play'].loaded++;
+
+          // fix idx data of rows
+          $table.find("tr").each(function (index) {
+            $(this).data('idx', index - 1); // first row is tools list
+          });
+
+        } else {
+
+          if($table.find('.loadMore').length) {
+            return;
+          }
+
+          var $tr = makeTrackEntry(msg.track, 'Play');
+          $table.append($tr);
+          playlist['Play'].loaded++;
+        }
+
+      });
+
+      socket.on('movedTrackInList', function(msg) {
+        if(playlist['Play'].id_low != msg.id_low || playlist['Play'].id_high != msg.id_high)
+          return;
+
+         $('#movingMessage').hide();
+
+        console.log('movedTrackInList ' + msg.from + ' -> ' + msg.to);
+
+        var $table = $('#tablePlaylist');
+        var $rows = $table.find("tr");
+
+        // Validate indices
+        // first row is the tool list
+        if (msg.from < 0 || msg.from >= $rows.length-1 || msg.to < 0 || msg.to >= $rows.length-1) {
+          return;
+        }
+
+        if(msg.from < msg.to)
+          msg.to --;
+
+        // Move the row
+        var $rowToMove = $rows.eq(msg.from + 1); // Remove the row from the DOM
+        $rowToMove.detach();
+        $rows = $table.find("tr");
+        $rowToMove.insertBefore($rows.eq(msg.to + 1)); // Insert after the desired position
+
+        // fix idx data of rows
+        $table.find("tr").each(function (index) {
+          $(this).data('idx', index - 1); // first row is tools list
+        });
+      });
+
+      function showPopupMenu(menu, x, y) {
+        $(menu).show();
+        var popupMenu = $(menu + ' .popupMenu');
+
+        var menuWidth = popupMenu.outerWidth();
+        var menuHeight = popupMenu.outerHeight();
+
+        // Center the popup around the mouse click
+        var offsetX = x - menuWidth - 150;
+        var offsetY = y - menuHeight / 2;
+
+        popupMenu.css({ left: offsetX + "px", top: offsetY + "px" });
+      }
+
+      $('#popupContainer').on('click', function(e) {
+        $('#popupContainer').hide();
+      });
+
+      $('#popupContainerList').on('click', function(e) {
+        $('#popupContainerList').hide();
+      });
+
+      function onPopupQueue() {
+        $('#popupContainer').hide();
+        alert('not yet supported!');
+      }
+
+      function onPopupPlayNext() {
+        $('#popupContainer').hide();
+        alert('not yet supported!');
+      }
+
+      function onPopupMove() {
+        $('#popupContainer').hide();        
+        $('#moveMessage').show();
+      }
+
+      function onPopupRename() {
+        $('#popupContainerList').hide();        
+        $('#inputName').val(sourceList.name);
+        $('#renameMessage').show();
+      }
+
+      function onRenameCancel() {
+        $('#renameMessage').hide();
+      }
+
+      function onRenameOk() {
+        $('#renameMessage').hide();
+        itunes.renameList({"id_low":sourceList.id_low, "id_high":sourceList.id_high, "name": $('#inputName').val()});
+      }
+
+
+      function onPopupRemove() {
+        $('#popupContainer').hide();
+        $('#confirmRemove').show();
+      }
+
+      function onRemoveCancel() {
+        $('#confirmRemove').hide();
+      }
+
+      function onRemoveOk() {
+        $('#confirmRemove').hide();
+        var pl = playlist[sourceTrack.context];
+        itunes.removeTrackFromList({"track": sourceTrack, "id_low":pl.id_low, "id_high":pl.id_high});
+      }
+
+      socket.on('removedTrackFromList', function(msg) {
+        if(playlist['Play'].id_low != msg.id_low || playlist['Play'].id_high != msg.id_high)
+          return;
+
+        var cls = '.trTrack_'+msg.track.id_low+'_'+msg.track.id_high;
+
+        console.log('removedTrackFromList ' + cls);
+
+        var $table = $('#tablePlaylist');
+
+        $table.find(cls).remove(); // Remove the row from the DOM
+        playlist['Play'].loaded--;
+
+        // fix idx data of rows
+        $table.find("tr").each(function (index) {
+          $(this).data('idx', index - 1); // first row is tools list
+        });
+      });
+
+      function onMoveCancel() {
+        $('#moveMessage').hide();
+      }
+
       function onPlaylistTrack(idx, type) {
       
+        var pl = playlist[type];
+
         if(idx == -1) {
-          itunes.playTrackInList(playlist[type].id_low, playlist[type].id_high, -1);
+          itunes.playTrackInList(pl.id_low, pl.id_high, -1);
         } else {
-          itunes.playTrackInList(playlist[type].id_low, playlist[type].id_high, idx, playlist[type].sortOrder);
+          itunes.playTrackInList(pl.id_low, pl.id_high, idx, pl.sortOrder);
         }
+
         onNow(true);
       }
 
@@ -1827,17 +2254,19 @@
         for(var i=0; i<tracks.length; i++) {
           var tr = tracks[i];
 
-          var rating = "";
+          var rating = '<span class="trackRating_' + tr.id_low + '_' + tr.id_high + '">';
           
           for(r=0; r<tr.rating; r+=20)
             rating+='&#x2605';
+
+          rating += '</span>';
           
           var duration = formatTime(tr.duration);
 
           if(tr.kind == 3)  // radio
-            $table.append('<tr class="trTrack" style="border-bottom:4px solid #000;" onClick="onSong('+tr.id_low+', '+tr.id_high+')"><td class="tdTrackNumber"><img style="width:200px;" src="thumbs/cover~'+tr.id_low+'~'+tr.id_high+'~'+ tr.name + '~no_artist~false~0~'+tr.kind+'~.png"></td><td class="tdTrackInfo"><span class="tdTrackName">'+tr.name+'</span><br>'+rating+'</td><td class="tdTrackInfo"><div class="divAlbumTrackPlay_'+tr.id_low+'_'+tr.id_high+'"><img src="img/playing.png"></div></td></tr>');
+            $table.append('<tr class="trTrack trTrack_' + tr.id_low + '_' + tr.id_high + '" style="border-bottom:4px solid #000;" onClick="onSong('+tr.id_low+', '+tr.id_high+')"><td class="tdTrackNumber"><img style="width:200px;" src="thumbs/cover~'+tr.id_low+'~'+tr.id_high+'~'+ tr.name + '~no_artist~false~0~'+tr.kind+'~.png"></td><td class="tdTrackInfo"><span class="tdTrackName">'+tr.name+'</span><br>'+rating+'</td><td class="tdTrackInfo"><div class="divAlbumTrackPlay_'+tr.id_low+'_'+tr.id_high+'"><img src="img/playing.png"></div></td></tr>');
           else
-            $table.append('<tr class="trTrack" style="border-bottom:4px solid #000;" onClick="onSong('+tr.id_low+', '+tr.id_high+')"><td class="tdTrackNumber"><img style="width:200px;" src="thumbs/cover~'+tr.id_low+'~'+tr.id_high+'~'+ tr.album +'~'+tr.artist+'~'+tr.compilation+'~'+tr.trackCount+'~'+tr.kind+'~.png"></td><td class="tdTrackInfo"><span class="tdTrackName">'+tr.name+'</span><br><span class="tdTrackAlbum">'+tr.album+' - '+tr.artist+'</span><br>'+duration+' '+rating+'</td><td class="tdTrackInfo"><div class="divAlbumTrackPlay_'+tr.id_low+'_'+tr.id_high+'"><img src="img/playing.png"></div></td></tr>');
+            $table.append('<tr class="trTrack trTrack_' + tr.id_low + '_' + tr.id_high + '" style="border-bottom:4px solid #000;" onClick="onSong('+tr.id_low+', '+tr.id_high+')"><td class="tdTrackNumber"><img style="width:200px;" src="thumbs/cover~'+tr.id_low+'~'+tr.id_high+'~'+ tr.album +'~'+tr.artist+'~'+tr.compilation+'~'+tr.trackCount+'~'+tr.kind+'~.png"></td><td class="tdTrackInfo"><span class="tdTrackName">'+tr.name+'</span><br><span class="tdTrackAlbum">'+tr.album+' - '+tr.artist+'</span><br>'+duration+' '+rating+'</td><td class="tdTrackInfo"><div class="divAlbumTrackPlay_'+tr.id_low+'_'+tr.id_high+'"><img src="img/playing.png"></div></td></tr>');
           }
 
         // bug fix iOS 11.1.1 did often not scroll

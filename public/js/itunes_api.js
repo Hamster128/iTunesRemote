@@ -68,6 +68,10 @@ itunes.setRating = function (id_low, id_high, rating) {
   socket.emit('setRating', { "id_low": id_low, "id_high": id_high, "rating": rating });
 };
 
+itunes.setEnabled = function (id_low, id_high, enabled) {
+  socket.emit('setEnabled', { "id_low": id_low, "id_high": id_high, "enabled": enabled });
+};
+
 itunes.tracksPlaylists = function (track) {
   socket.emit('tracksPlaylists', track);
 };
@@ -76,8 +80,16 @@ itunes.removeTrackFromList = function (msg) {
   socket.emit('removeTrackFromList', msg);
 };
 
+itunes.renameList = function (msg) {
+  socket.emit('renameList', msg);
+};
+
 itunes.addTrackToList = function (msg) {
   socket.emit('addTrackToList', msg);
+};
+
+itunes.moveTrackInList = function (msg) {
+  socket.emit('moveTrackInList', msg);
 };
 
 // 2...Artist / Album Artist
