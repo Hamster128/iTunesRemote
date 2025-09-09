@@ -16,8 +16,12 @@ var num_sources = sources.Count;
 var skip = parseInt(WScript.Arguments.Item(2));
 var mode = parseInt(WScript.Arguments.Item(3));
 var sortOrder = parseInt(WScript.Arguments.Item(4));
+var count = parseInt(WScript.Arguments.Item(5));
 var idx = {};
-var count = 50;
+
+if(count == 0) {
+  count = 50;
+}
 
 if(skip < 0) {
   count = skip * -1;
@@ -108,24 +112,35 @@ while(num_sources) {
             "name":track.Name,
             "album":track.Album,
             "artist":track.Artist,
+            "albumArtist":track.AlbumArtist,
+            "composer":track.Composer,
             "id_low":iTunesApp.ITObjectPersistentIDLow(track),
             "id_high":iTunesApp.ITObjectPersistentIDHigh(track),
             "trackNumber":track.TrackNumber,
             "trackCount":track.TrackCount,
             "compilation":track.Compilation,
+            "kind": track.Kind,
             "bitRate":track.BitRate,
             "duration":track.Duration,
             "rating":track.Rating,
             "enabled":track.Enabled,
             "sampleRate":track.SampleRate,
+            "type":track.KindAsString,
             "comment":track.Comment,
-            "kind":track.Kind,
             "year":track.Year,
+            "playedCount":track.PlayedCount,
+            "grouping":track.Grouping,
+            "volumeAdjustment": track.VolumeAdjustment,
+            "discCount":track.DiscCount,
+            "discNumber":track.DiscNumber,      
             "i":i
           };
       
           if(track.ratingKind)	// auto rating
             tr.rating = 0;
+
+          if(track.Kind == 3) tr.location = track.URL;
+          else                tr.location = track.Location;
     
           list.push(tr);
         }

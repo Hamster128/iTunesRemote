@@ -259,3 +259,55 @@ VideoKind          Property   ITVideoKind VideoKind () {get} {set}
 VolumeAdjustment   Property   int VolumeAdjustment () {get} {set}      
 Year               Property   int Year () {get} {set}                  
 
+$itunes = New-Object  -ComObject iTunes.Application
+$mediathek = $itunes.Sources[1]
+$radios = $mediathek.Playlists.ItemByPersistentID(-1395801479,960655121)
+$radios.Tracks[2]
+Name             : Radio Niederösterreich
+Index            : 2
+sourceID         : 49
+playlistID       : 199392
+trackID          : 199396
+TrackDatabaseID  : 49625
+Kind             : 3
+Playlist         : System.__ComObject
+Album            : 
+Artist           : 
+BitRate          : 192
+BPM              : 0
+Comment          : 
+Compilation      : False
+Composer         : 
+DateAdded        : 20.01.2021 07:40:18
+DiscCount        : 0
+DiscNumber       : 0
+Duration         : 0
+Enabled          : True
+EQ               : 
+Finish           : 0
+Genre            : 
+Grouping         : 
+KindAsString     : Internetaudio-Stream
+ModificationDate : 30.12.1899 00:00:00
+PlayedCount      : 27
+PlayedDate       : 14.04.2025 19:05:05
+PlayOrderIndex   : 2
+Rating           : 0
+SampleRate       : 48000
+Size             : 0
+Start            : 0
+Time             : 
+TrackCount       : 0
+TrackNumber      : 20
+VolumeAdjustment : 0
+Year             : 0
+Artwork          : System.__ComObject
+URL              : https://orf-live.ors-shoutcast.at/noe-q2a
+Podcast          : False
+Category         : 
+Description      : 
+LongDescription  : 
+AlbumRating      : 0
+AlbumRatingKind  : 1
+ratingKind       : 1
+Playlists        : System.__ComObject

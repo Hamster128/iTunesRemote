@@ -10,13 +10,19 @@ const execFile = require('child_process').execFile;
 const exec = require('child_process').exec;
 const devialet = require('./devialet');
 const Con2log = require('./con2log');
+const iconv = require('./itunes_api/node_modules/iconv-lite');
+const mpv = require('./mpv_player.js');
+const http_client = require("http");
+
+const VST_VOLUME_CTRL_URL = "http://127.0.0.1:8088/volume?value=";
 
 Con2log.keepFilesDays = 7;
 
 var state = {
   state:0,
   position:0,
-  initialized:false
+  initialized:false,
+  volume: 100
 };
 
 var track = {
@@ -27,16 +33,17 @@ var track = {
 
 var getArtworkQueue = [], artWorkBusy = false;
 var getStateTimer = 0, connections = 0;
-var devialetVol = -1;
+var devialetVol = null;
 var systemRequiredInterval = 0, systemRequiredOffTimer = 0;
 var newPosSet = false;
-var audioDeviceState = {"state":2, "mute":0, "source":""};
+var audioDeviceState = {"state":0, "mute":0, "source":""};
 var audioDevicePresentTimer = 0;
 var audioDeviceCheckInterval = 500;
 var continueAfterMute = false;
 var iTunesEnabled = true;
 var lastTrack;
 let lastAirPlaySongStamp;
+let volChangedbyUs;
 
 app.use(express.static(__dirname + '/public'));
 
@@ -54,6 +61,11 @@ try {
 
 
 settings = JSON.parse(settings);
+
+if(!("startVolume" in settings)) {
+  settings.startVolume = 30;
+}
+
 
 function doNextArtworkQueue() {
   if(artWorkBusy)
@@ -154,14 +166,22 @@ io.on('connection', function(socket) {
     if(!iTunesEnabled)
       return;
       
-    itunes.play();
+    if(mpv.active()) {
+      mpv.play();
+    } else {
+      itunes.play();
+    }
   });
   
   socket.on('pause', function(msg){
     if(!iTunesEnabled)
       return;
       
-    itunes.pause();
+    if(mpv.active()) {
+      mpv.pause();
+    } else {
+      itunes.pause();
+    }
   });
 
   socket.on('backTrack', function(msg){
@@ -170,10 +190,17 @@ io.on('connection', function(socket) {
       
     clearTimeout(getStateTimer);
     getStateTimer = 0;
-    itunes.backTrack(function(){
+
+    if(mpv.active()) {
+      mpv.backTrack();
       getStateTimer = 1;
       getState();
-    });
+    } else {
+      itunes.backTrack(function(){
+        getStateTimer = 1;
+        getState();
+      });
+    }
     
   });
   
@@ -183,17 +210,29 @@ io.on('connection', function(socket) {
       
     clearTimeout(getStateTimer);
     getStateTimer = 0;
-    itunes.nextTrack(function(){
+
+    if(mpv.active()) {
+      mpv.nextTrack();
       getStateTimer = 1;
       getState();
-    });
+    } else {
+      itunes.nextTrack(function(){
+        getStateTimer = 1;
+        getState();
+      });
+    }
   });
 
   socket.on('setPlayerPosition', function(msg){
     if(!iTunesEnabled)
       return;
       
-    itunes.setPlayerPosition(msg.newPosition);
+    if(mpv.active()) {
+      mpv.setPlayerPosition(msg.newPosition);
+    } else {
+      itunes.setPlayerPosition(msg.newPosition);
+    }
+
     state.position = msg.newPosition;
     newPosSet = true;
   });
@@ -202,13 +241,39 @@ io.on('connection', function(socket) {
     if(!iTunesEnabled)
       return;
       
-    if(state.volumeDigits) {
-      let db = (msg.newVolume - 75) / 2; // -35 - +15
-      db = Math.floor(db * 2) / 2;  // round to 0.5
-      devialet.vol(db);
-  } else {
-      itunes.setSoundVolume(msg.newVolume);
+    if(volChangedbyUs) {
+      clearTimeout(volChangedbyUs);
     }
+
+    volChangedbyUs = setTimeout(function() {
+      volChangedbyUs = null;
+    }, 1000);
+
+    if("volumeDigits" in state) { // Devialet only
+      let db;
+
+      if("newDb" in msg) {
+        db = msg.newDb;
+      } else {
+        db = (msg.newVolume - 75) / 2; // -35 - +15
+        db = Math.floor(db * 2) / 2;  // round to 0.5
+        devialet.vol(db);
+      }
+
+      devialetVol = db;
+      setDevialetInfo();
+
+      io.sockets.emit('state', state);
+    } else {
+      if("wait4AudioDevice" in settings) {
+        setVolume(msg.newVolume);
+      } else {
+        itunes.setSoundVolume(msg.newVolume);
+      }
+
+      io.sockets.emit('volume', msg.newVolume);
+    }
+
   });
 
   socket.on('setRepeat', function(msg){
@@ -216,6 +281,7 @@ io.on('connection', function(socket) {
       return;
       
     itunes.setRepeat(msg.repeat);
+    mpv.repeat = msg.repeat;
   });
 
   socket.on('setShuffle', function(msg){
@@ -223,6 +289,7 @@ io.on('connection', function(socket) {
       return;
       
     itunes.setShuffle(msg.shuffle);
+    mpv.shuffle = msg.shuffle;
   });
   
   socket.on('albumTracks', function(msg){
@@ -238,19 +305,37 @@ io.on('connection', function(socket) {
     if(!iTunesEnabled)
       return;
       
+    if(settings.mpvVolumeControl || settings.vstVolumeControl) {
+      execFile('nircmdc.exe', ["setsysvolume", 65535], {}, function(err, stdout, stderr) {});
+    }
+
     clearTimeout(getStateTimer);
     getStateTimer = 0;
-    itunes.playTrack(msg, function(){
-      getStateTimer = 1;
-      track.name = undefined;   // force sending track.queueInfo
-      getState();
-    });
+
+    if(settings.mpv) {
+      mpv.playTrack(msg, function(){
+        getStateTimer = 1;
+        track.name = undefined;   // force sending track.queueInfo
+        getState();
+      });  
+    } else {
+      itunes.playTrack(msg, function(){
+        getStateTimer = 1;
+        track.name = undefined;   // force sending track.queueInfo
+        getState();
+      });  
+    }
+
   });
    
   socket.on('playQueueFrom', function(msg){
     if(!iTunesEnabled)
       return;
       
+    if(settings.mpvVolumeControl || settings.vstVolumeControl) {
+      execFile('nircmdc.exe', ["setsysvolume", 65535], {}, function(err, stdout, stderr) {});
+    }
+  
     clearTimeout(getStateTimer);
     getStateTimer = 0;
     itunes.playQueueFrom(msg.idx, function(){
@@ -263,12 +348,25 @@ io.on('connection', function(socket) {
     if(!iTunesEnabled)
       return;
       
+    if(settings.mpvVolumeControl || settings.vstVolumeControl) {
+      execFile('nircmdc.exe', ["setsysvolume", 65535], {}, function(err, stdout, stderr) {});
+    }
+  
     clearTimeout(getStateTimer);
     getStateTimer = 0;
-    itunes.playAlbumFrom(msg, function(){
-      getStateTimer = 1;
-      getState();
-    });
+
+    if(settings.mpv) {
+      mpv.playAlbumFrom(msg, function() {
+        getStateTimer = 1;
+        getState();
+      });
+    } else {
+      itunes.playAlbumFrom(msg, function(){
+        getStateTimer = 1;
+        getState();
+      });
+    }
+
   });
   
   socket.on('playLists', function(msg){
@@ -300,18 +398,61 @@ io.on('connection', function(socket) {
     });
   });
   
+  socket.on('addList', function(msg){
+    if(!iTunesEnabled)
+      return;
+      
+    itunes.addList(msg, function(res) {
+
+      if(res.error) {
+        console.log("error creating new playlist '" + msg.name + "' "+ res.error);
+        return;
+      }
+
+      console.log("created new playlist '" + msg.name + "'");
+
+      itunes.playLists(function(lists){
+        io.sockets.emit('playLists', lists);
+      });
+    });
+  });
+
+  socket.on('removeList', function(msg){
+    if(!iTunesEnabled)
+      return;
+      
+    itunes.removeList(msg, function(res) {
+      itunes.playLists(function(lists){
+        io.sockets.emit('playLists', lists);
+      });
+    });
+  });
+
   socket.on('playTrackInList', function(msg){
     console.log("on playTrackInList", msg);
 
     if(!iTunesEnabled)
       return;
       
+    if(settings.mpvVolumeControl || settings.vstVolumeControl) {
+      execFile('nircmdc.exe', ["setsysvolume", 65535], {}, function(err, stdout, stderr) {});
+    }
+    
     clearTimeout(getStateTimer);
     getStateTimer = 0;
-    itunes.playTrackInList(msg, function(){
-      getStateTimer = 1;
-      getState();
-    });
+
+    if(settings.mpv) {
+      mpv.playTrackInList(msg, function(){
+        getStateTimer = 1;
+        getState();
+      });
+    } else {
+      itunes.playTrackInList(msg, function(){
+        getStateTimer = 1;
+        getState();
+      });
+    }
+
   });
   
   socket.on('setRating', function(msg){
@@ -426,6 +567,7 @@ io.on('connection', function(socket) {
   socket.emit('state', state);
   socket.emit('track', track);  
   socket.emit('deviceState', audioDeviceState);
+  socket.emit('volume', state.volume);
 });
 
 
@@ -536,19 +678,28 @@ function getState() {
       return;
       }
   
+    if(settings.mpv) {
+      rsp.state       = mpv.state;
+      rsp.position    = mpv.position;
+      rsp.duration    = mpv.duration;
+      rsp.sampleRate  = mpv.sampleRate;
+    }
+
     if(state.state != rsp.state || state.position != rsp.position || newPosSet) {
       var oldPos = state.position;
       
+      let oldVol = state.volume;
       state = rsp;
+      state.volume = oldVol;
       
       if(!state.state || newPosSet)
         state.position = oldPos;
         
        newPosSet = false;
     
-      if(devialetVol != -1) 
+      if(devialetVol != null) 
         setDevialetInfo();
-    
+
       io.sockets.emit('state', state);
     }
 
@@ -560,123 +711,240 @@ function getState() {
       return;
     }
 
-    itunes.currentTrack(async function(rsp){
-
-      if(!getStateTimer)
-        return;
-            
-      if(lastAirPlaySongStamp) {
-        getStateTimer = setTimeout(getState, 500);
-        return;
-        }
-  
-      state.initialized = true;
-            
-      if(rsp && (rsp.name != track.name || rsp.artist != track.artist || rsp.album != track.album || rsp.enabled != track.enabled)) {
-        track = rsp;
-
-        console.log(JSON.stringify(track));
-
-        if(track.kind == 3) { // radio
-          track.artworks = 1;
-
-          var is = fs.createReadStream('public/thumbs_radio/' + track.name + '.jpg')
-          
-          is.on('end', function() {
-            io.sockets.emit('track', track);
-          });
-            
-          is.on('error', function(e) {
-            console.log('public/thumbs_radio/' + track.name + '.jpg '+e);
-            
-            var is = fs.createReadStream('public/img/no_radio_icon.jpg')
-            
-            is.on('end', function() {
-              io.sockets.emit('track', track);
-            });
-              
-            is.on('error', function(e) {
-              console.log('Can`t open public/img/no_radio_icon.jpg '+e);
-            });
-              
-            var os = fs.createWriteStream('public/img/current1.png');
-
-            os.on('error', function(e) {
-              console.log('Can`t write public/img/current1.png '+e);
-            });
-                            
-            is.pipe(os);
-          });
-            
-          var os = fs.createWriteStream('public/img/current1.png');
-
-          os.on('error', function(e) {
-            console.log('Can`t write public/img/current1.png '+e);
-          });
-                          
-          is.pipe(os);
-        } else {
-
-          if(!track.name) {
-
-            // player stopped, check if there were some tracks added to the queue while playing
-            if(lastTrack && lastTrack['queueInfo'] && lastTrack.queueInfo.idx < lastTrack.queueInfo.count) {
-              itunes.playQueueFrom(lastTrack.queueInfo.idx + 1, function() {
-                getStateTimer = 1;
-                getState();
-              });
-              return;
-            }
-          } 
-
-          lastTrack = track;
-
-          track.queueInfo = await itunes.idxInQueue(track);
-
-          itunes.currentArtwork(function(resp){
-          
-            if(!getStateTimer)
-              return;
-              
-            if(!resp.found) {
-
-              console.log(`itunes.currentArtwork() not found!`);
-
-              track.artworks = 1;
-
-              var is = fs.createReadStream('public/img/no_cover.png')
-              
-              is.on('end', function() {
-                io.sockets.emit('track', track);
-              });
-                
-              is.on('error', function(e) {
-                console.log('Can`t open public/img/no_cover.png '+e);
-              });
-                
-              var os = fs.createWriteStream('public/img/current1.png');
-  
-              os.on('error', function(e) {
-                console.log('Can`t write public/img/current1.png '+e);
-              });
-                              
-              is.pipe(os);
-            }
-            else {
-              track.artworks = resp.found;
-              io.sockets.emit('track', track);
-            }
-          });
-        }
-        
-      }
-        
-      if(getStateTimer)
-        getStateTimer = setTimeout(getState, 500);
-    });
-            
+    if(settings.mpv) {
+      mpv.currentTrack(processCurrentTrack);
+    } else {
+      itunes.currentTrack(processCurrentTrack);
+    }
   });
 }
+
+let volChangeBusy = false;
+let targetVol = null;
+
+async function processCurrentTrack(rsp){
+  if(!getStateTimer)
+    return;
+        
+  if(lastAirPlaySongStamp) {
+    getStateTimer = setTimeout(getState, 500);
+    return;
+  }
+
+  state.initialized = true;
+        
+  let currentName = track.name;
+  if("originalName" in track) {
+    currentName = track.originalName;
+  }
+
+  if(rsp && (rsp.name != currentName || rsp.mediaTitle != track.mediaTitle || rsp.artist != track.artist || rsp.album != track.album || rsp.enabled != track.enabled)) {
+    track = rsp;
+
+    console.log(JSON.stringify(track));
+
+    if(track.kind == 3) { // radio
+      loadRadioArtwork(); 
+    } else {
+
+      if(!track.name) {
+
+        // player stopped, check if there were some tracks added to the queue while playing
+        if(lastTrack && lastTrack['queueInfo'] && lastTrack.queueInfo.idx < lastTrack.queueInfo.count) {
+          itunes.playQueueFrom(lastTrack.queueInfo.idx + 1, function() {
+            getStateTimer = 1;
+            getState();
+          });
+          return;
+        }
+      } 
+
+      lastTrack = track;
+
+      if(!settings.mpv) {
+        track.queueInfo = await itunes.idxInQueue(track);
+        itunes.currentArtwork(processArtwork);
+      } else {
+        itunes.artworkOfTrack(track, processArtwork);
+      }
+
+    }
+  }
+    
+  if(getStateTimer)
+    getStateTimer = setTimeout(getState, 500);
+}
+
+let currentArtwork;
+
+function loadRadioArtwork() {
+
+  track.originalName = track.name;
+  track.artworks = 1;
+
+  if("mediaTitle" in track) {
+    track.name = track.mediaTitle;  // meta data of stream (usually current played song)
+  }
+
+  if(currentArtwork == track.originalName) {
+    io.sockets.emit('track', track);
+    return;
+  }
+
+  var is = fs.createReadStream('public/thumbs_radio/' + track.originalName + '.jpg')
+  
+  is.on('end', function() {    
+    currentArtwork = track.originalName;
+    io.sockets.emit('track', track);
+  });
+    
+  is.on('error', function(e) {
+    console.log('public/thumbs_radio/' + track.originalName + '.jpg '+e);
+    
+    var is = fs.createReadStream('public/img/no_radio_icon.jpg')
+    
+    is.on('end', function() {
+      currentArtwork = track.originalName;
+      io.sockets.emit('track', track);
+    });
+      
+    is.on('error', function(e) {
+      console.log('Can`t open public/img/no_radio_icon.jpg '+e);
+    });
+      
+    var os = fs.createWriteStream('public/img/current1.png');
+
+    os.on('error', function(e) {
+      console.log('Can`t write public/img/current1.png '+e);
+    });
+                    
+    is.pipe(os);
+  });
+    
+  var os = fs.createWriteStream('public/img/current1.png');
+
+  os.on('error', function(e) {
+    console.log('Can`t write public/img/current1.png '+e);
+  });
+                  
+  is.pipe(os);
+}
+
+function processArtwork(resp){
+      
+  currentArtwork = null;
+
+  if(!getStateTimer)
+    return;
+    
+  if(resp.found) {
+    track.artworks = resp.found;
+    io.sockets.emit('track', track);
+    return;
+  }
+
+  console.log(`itunes.currentArtwork() not found!`);
+
+  track.artworks = 1;
+
+  var is = fs.createReadStream('public/img/no_cover.png')
+  
+  is.on('end', function() {
+    io.sockets.emit('track', track);
+  });
+    
+  is.on('error', function(e) {
+    console.log('Can`t open public/img/no_cover.png '+e);
+  });
+    
+  var os = fs.createWriteStream('public/img/current1.png');
+
+  os.on('error', function(e) {
+    console.log('Can`t write public/img/current1.png '+e);
+  });
+                  
+  is.pipe(os);
+};
+
+function setVolume(vol, force) {
+
+  if(vol == state.volume && !force) {
+    io.sockets.emit('state', state); 
+    io.sockets.emit('volume', vol);
+    return;
+  }
+
+  state.volume = vol;
+
+  console.log(`setVolume(${vol})`);
+
+  if(settings.mpv && settings.mpvVolumeControl) {
+    mpv.setVolume(vol);
+    io.sockets.emit('state', state);
+    io.sockets.emit('volume', vol);
+    execFile('nircmdc.exe', ["setappvolume", "Shairport4wx64.exe", vol / 500], {}, function(err, stdout, stderr) {});
+    return;
+  }
+
+  if(settings.vstVolumeControl) {   
+    http_client.get(VST_VOLUME_CTRL_URL + vol, (res) => {});  
+    io.sockets.emit('state', state); 
+    io.sockets.emit('volume', vol);
+    return;
+  }
+
+  if(volChangeBusy) {
+    targetVol = vol;
+    return;
+  } 
+
+  volChangeBusy = true;
+  let volParam = 65535 * vol / 100;
+
+  execFile('nircmdc.exe', ["setsysvolume", volParam], {}, function(err, stdout, stderr) {
+    volChangeBusy = false;
+    io.sockets.emit('state', state); 
+    io.sockets.emit('volume', vol);
+    mpv.setVolume(100);
+
+    if(targetVol !== null) {
+      let setVol = targetVol;
+      targetVol = null;
+      setVolume(setVol);
+    }
+  });
+}
+
+function mute(on) {
+  execFile('EndPointController.exe', [on ? "mute" : "unmute", "-d", settings.wait4AudioDevice], {}, function(err, stdout, stderr) {
+  });
+}
+
+function checkAudioActive() {
+
+  exec('SoundVolumeView.exe /sjson', {encoding: 'utf16',  maxBuffer: 1024 * 1024 * 10}, function(err, stdout, stderr) {
+
+    let str = iconv.decode(stdout, 'utf16');
+    let data = JSON.parse(str);
+
+    for(let proc of data) {
+
+      if(proc.Type != "Application")        continue;
+      if(proc.Direction != "Render")        continue;
+      if(proc["Device State"] != "Active")  continue;
+
+
+      // someone is playing
+      io.sockets.emit('active', true);
+      return;
+    }
+
+    io.sockets.emit('active', false);
+  });
+
+}
+
+checkAudioActive();
 
 function checkAudioDevice() {
   
@@ -715,6 +983,8 @@ function checkAudioDevice() {
     if(found > -1) { // Audio device is present
 
       systemRequired(true);
+
+      checkAudioActive();
 
       if(audioDeviceState.state == 2) {
         setTimeout(checkAudioDevice, audioDeviceCheckInterval);
@@ -765,8 +1035,20 @@ function checkAudioDevice() {
           if(audioDeviceState.state < 1)
             return;
         
+          if(!settings.devialet) {
+            setVolume(settings.startVolume, true);
+
+            if(settings.mpvVolumeControl || settings.vstVolumeControl) {
+              execFile('nircmdc.exe', ["setsysvolume", 65535], {}, function(err, stdout, stderr) {});
+            }
+          }
+
           console.log(settings.wait4AudioDevice+' starting iTunes...');
         
+          if(settings.mpv) {
+            mpv.startup(itunes, settings);
+          }
+          
           exec('start /min "" "C:\\Program Files\\iTunes\\iTunes.exe"', {windowsHide: true}, function(err, stdout, stderr) {
           });
 
@@ -813,7 +1095,7 @@ function checkAudioDevice() {
       else {
         console.log(settings.wait4AudioDevice+' switched to '+audioDeviceState.source);
         
-        if(audioDeviceState.state == 2 && 'devialetOtherSourceDevice' in settings) {
+        if(audioDeviceState.state == 2 && 'otherSourceDevice' in settings) {
 
           // check if configured audio device is in list
           for(var l = 0; l < lines.length; l ++) {
@@ -830,9 +1112,9 @@ function checkAudioDevice() {
       
       		  var device = line.substr(p1+2, p2-p1-3);
             
-            if(device == settings.devialetOtherSourceDevice) {
+            if(device == settings.otherSourceDevice) {
               // set configured audio device as windows default audio device
-              console.log(settings.devialetOtherSourceDevice+' set as active device...');
+              console.log(settings.otherSourceDevice+' set as active device...');
               execFile('EndPointController.exe', [l], {}, function(err, stdout, stderr) {});
               break;
             }
@@ -856,6 +1138,8 @@ function checkAudioDevice() {
       if(settings.killAlso)
         execFile('nircmdc.exe', ['killprocess', settings.killAlso], {}, function(err, stdout, stderr) {});
 
+      mpv.quit();
+
       continueAfterMute = false;
       audioDeviceState.state = newState;
       io.sockets.emit('deviceState', audioDeviceState);
@@ -864,6 +1148,8 @@ function checkAudioDevice() {
     }
     
   });
+
+
 
 }
 
@@ -878,16 +1164,20 @@ else {
 	}, 5000);	
 }
 
-
-devialet.start();
+if(settings.devialet) {
+  devialet.start();
+}
 
 devialet.on("status", function(status){
 
   if(status.vol != devialetVol) {
     console.log('new devialet vol', devialetVol, status.vol);
-    devialetVol = status.vol;
-    setDevialetInfo();
-    io.sockets.emit('state', state);
+
+    if(!volChangedbyUs) {
+      devialetVol = status.vol;
+      setDevialetInfo();
+      io.sockets.emit('state', state); 
+    }
   }
   
   checkComputerWasSleeping();
@@ -905,6 +1195,10 @@ devialet.on("status", function(status){
     }
   }
   
+  if(!status.on) {
+    status.source = 'OFF';
+  }
+
   if(status.source != audioDeviceState.source || status.mute != audioDeviceState.mute) {
     audioDeviceState.source = status.source;
     audioDeviceState.mute   = status.mute;
@@ -930,7 +1224,6 @@ function checkShairPort4W() {
 
   try {
     var stats = fs.statSync("current_song.txt");
-    var mtime = stats.mtime;
 
     if(stats.mtime.valueOf() == lastAirPlaySongStamp) {
       return;
@@ -947,15 +1240,31 @@ function checkShairPort4W() {
     lastAirPlaySongStamp = stats.mtime.valueOf();
 
     if(lines[1] == "Werbung" || lines[2] == "Werbung") {
-      devialet.mute(true);
+      if(settings.devialet)
+        devialet.mute(true);
+      else
+        mute(true);
     } else if(track.name == "Werbung" || track.artist == "Werbung") {
       setTimeout(function() {
-        devialet.mute(false);
+        if(settings.devialet)
+          devialet.mute(false);
+        else
+          mute(false);
       }, 900);
     }
 
     if(iTunesEnabled) {
-      itunes.pause();
+      if(mpv.active()) {
+        mpv.pause();
+      } else {
+        itunes.pause();
+      }
+    }
+
+    setVolume(state.volume, true);
+
+    if(settings.mpvVolumeControl || settings.vstVolumeControl) {
+      execFile('nircmdc.exe', ["setsysvolume", 65535], {}, function(err, stdout, stderr) {});
     }
 
     track = {
@@ -980,7 +1289,7 @@ function checkShairPort4W() {
     console.log(`AirPlay track:"${track.name}" artist:"${track.artist}" album:"${track.album}"`)
 
     io.sockets.emit('track', track);
-
+    
   } catch(e) {
 
     if(!lastAirPlaySongStamp) {

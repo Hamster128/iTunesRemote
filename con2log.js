@@ -40,7 +40,7 @@ console.log = function() {
     logStream = fs.createWriteStream(`logs/${logDate}.log`, { flags: 'a' });
   }
 
-  let stamp = moment().format('YYYY-MM-DD HH:mm:ss');
+  let stamp = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
 
   let txt = util.format.apply(null, arguments);
 

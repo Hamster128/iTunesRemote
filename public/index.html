@@ -20,15 +20,14 @@
     <script src="js/itunes_api.js"></script>
 
     <div id="divMain" class="vertOnly" style="width:100vw; height:100vh; position:absolute; background:#EEE;">
-
-      <!-- play lists page -->
+       <!-- play lists page -->
       <div id="tabPlaylists" style="position:absolute; left:0px; top:0px; width:100vw; bottom:200px;">
       
         <div style="position:absolute; left:0px; top:0px; right:0px; height:150px;">
           <table style="width:100%; height:150px; border-bottom:4px solid #555;" cellspacing=0><tr>
-            <td style="width:200px;" onTouchStart="onPlaylistsBack('Play', true)" onClick="onPlaylistsBack('Play')"><span id="spanNewList" style="display:none;">New</span><img id="imgPlaylistsBack" style="visibility:hidden;" src="img/back.png"></td>
+            <td style="width:200px; text-align:center; cursor:pointer;" onTouchStart="onPlaylistsBack('Play', true)" onClick="onPlaylistsBack('Play')"><span id="spanNewList" style="font-size:80px;">+</span><img id="imgPlaylistsBack" style="display:none;" src="img/back.png"></td>
             <td style="text-align:center; font-size:60px; font-weight:bold;" id="tdPlaylistsTitle">Playlists</td>
-            <td class="tdNow" style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="onNow(true)" onClick="onNow()">Now</td>
+            <td class="tdNow" style="width:200px; cursor:pointer; text-align:center; font-size:60px; color:#66F;" onTouchStart="onNow(true)" onClick="onNow()">Now</td>
           </tr></table>
         </div>
       
@@ -53,7 +52,7 @@
       
         <div style="position:absolute; left:0px; top:0px; right:0px; height:150px;">
           <table style="width:100%; height:150px; border-bottom:4px solid #555;" cellspacing=0><tr>
-            <td style="width:200px;" onTouchStart="onPlaylistsBack('Auto', true)" onClick="onPlaylistsBack('Auto')"><img id="imgAutolistsBack" style="visibility:hidden;" src="img/back.png"></td>
+            <td style="width:200px;" onTouchStart="onPlaylistsBack('Auto', true)" onClick="onPlaylistsBack('Auto')"><img id="imgAutolistsBack" style="display:none;" src="img/back.png"></td>
             <td style="text-align:center; font-size:60px; font-weight:bold;" id="tdAutolistsTitle">Media</td>
             <td class="tdNow" style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="onNow(true)" onClick="onNow()">Now</td>
           </tr></table>
@@ -170,11 +169,18 @@
 
     <!-- player page -->
     <div id="divPlayer" class="divPlayerPage pageWidth prevent-select" style="height:100vh; position:absolute;">
-      <div id="divVolumeDigitsOverlay" class="pageWidth" style="display:none; z-index:3; height:100%; position:absolute; font-size:170px; background:rgba(0,0,0,.7); color:#FFF; text-align:center; padding-top:500px;">
-       24.0 dB
+      <div class="landscapeOnly" style="position:absolute; z-index:9;">
+        <div class="volume-indicator">
+          <svg class="progress-circle" viewBox="0 0 100 100">
+            <circle class="bg-circle" cx="50" cy="50" r="45"></circle>
+            <circle class="progress-bar" cx="50" cy="50" r="45"></circle>
+          </svg>
+          <div class="dB">-10 dB</div>
+          <div class="dsp">DSP</span></div>
+        </div>
       </div>
+
       <div class="landscapeOnly prevent-select" style="z-index:2; position:absolute; left:30px; top:130px">
-        <img id="imgDSPbatch" src="img/audio_lense.png" style="width:75; height:75px; display:block; margin-bottom:10px;">
         <img id="imgHiRes" src="img/hires.png" style="width:75; height:75px; display:block;">
       </div> 
     
@@ -389,14 +395,15 @@
 
     <div id="popupContainer" class="popupContainer not-selectable" style="display:none;">
       <div class="popupMenu">
-        <div class="popupMenuItem" onTouchStart="onPopupRemove()" onclick="onPopupRemove()">Remove</div>
         <div class="popupMenuItem" onTouchStart="onPopupMove()" onclick="onPopupMove()">Move</div>
+        <div class="popupMenuItem" onTouchStart="onPopupRemove()" onclick="onPopupRemove()">Remove</div>
       </div>
     </div>
 
     <div id="popupContainerList" class="popupContainer not-selectable" style="display:none;">
       <div class="popupMenu">
         <div class="popupMenuItem" onTouchStart="onPopupRename()" onclick="onPopupRename()">Rename</div>
+        <div class="popupMenuItem" onTouchStart="onPopupRemove()" onclick="onPopupRemove()">Remove</div>
       </div>
     </div>
 
@@ -562,6 +569,36 @@
         $('#divTime').css('width', (position / state.duration * 10)+'%');
       }
                   
+      function mapValue(value, inMin, inMax, outMin, outMax) {
+        return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
+      } 
+
+      function updateVolumeDb(volume) {
+
+        $('.dB').text(`${volume}`);
+
+        var pct = mapValue(volume, -40, 20, 0, 95);
+        pct = Math.max(pct,  0);
+        pct = Math.min(pct, 95);
+
+        const maxOffset = 282.6; // Total circumference
+        const offset = maxOffset - (pct / 100) * maxOffset;
+        $('.progress-bar').css('stroke-dashoffset', offset);
+      }
+
+      function updateVolume(volume) {
+
+        $('.dB').text(`${volume}`);
+
+        var pct = mapValue(volume, 0, 100, 0, 75);
+        pct = Math.max(pct,  0);
+        pct = Math.min(pct, 75);
+
+        const maxOffset = 282.6; // Total circumference
+        const offset = maxOffset - (pct / 100) * maxOffset;
+        $('.progress-bar').css('stroke-dashoffset', offset);
+        }
+
       function displayVolume(volume) {
         actVolume = volume;
         $('#divVolume').css('width', volume+'%');
@@ -649,10 +686,10 @@
 
         if(settings.dsp) {
           $('#imgDSP').attr("src", "img/dsp_on.png");
-          $("#imgDSPbatch").show();
+          $(".dsp").show();
         } else {
           $('#imgDSP').attr("src", "img/dsp_off.png");
-          $("#imgDSPbatch").hide();
+          $(".dsp").hide();
         }
       });
       
@@ -719,6 +756,12 @@
       
         state = msg;
         
+        debugger;
+        if(state.sampleRate) {
+          sampleRate = state.sampleRate / 1000;
+          $('.dsp').html(sampleRate.toString());
+        }
+
         if(state.state && !oldState) {
           $('#btnPlay').attr('src', 'img/pause.png'); 
           
@@ -804,7 +847,11 @@
           if(actVolumeDigits != state.volumeDigits) {
             actVolumeDigits = state.volumeDigits;
             $('#divVolumeDigits').css('display','').html(state.volumeDigits);              
+            updateVolumeDb(state.volumeDigits);
           }
+        } else {
+          $('#divVolumeDigits').css('display','').html(state.volume);
+          updateVolume(state.volume);
         }
 
         if(!repeatActive)          
@@ -1128,31 +1175,30 @@
         if(!dragVolume || (touchScreen && !touched))
           return;
 
-          var pos;
+        var pos;
 
-          if(ev.changedTouches)
-            pos = ev.changedTouches[0].pageX - $('#tdVolume').offset().left;
-          else
-            pos = ev.offsetX;
+        if(ev.changedTouches)
+          pos = ev.changedTouches[0].pageX - $('#tdVolume').offset().left;
+        else
+          pos = ev.offsetX;
 
-          var widthTouchArea = $('#tdVolume')[0].offsetWidth;
-          var widthSlider    = $('#divVolumeSlider')[0].offsetWidth;
+        var widthTouchArea = $('#tdVolume')[0].offsetWidth;
+        var widthSlider    = $('#divVolumeSlider')[0].offsetWidth;
 
-          pos -= widthTouchArea - widthSlider;
+        pos -= widthTouchArea - widthSlider;
 
-          var volume = Math.round(pos / widthSlider * 100);
+        var volume = Math.round(pos / widthSlider * 100);
 
-          volume = startVolume + volume - dragVolume;
+        volume = startVolume + volume - dragVolume;
 
-          if(volume > 100)
-            volume = 100;
+        if(volume > 100)
+          volume = 100;
 
-          if(volume < 0)
-            volume = 0;
-            
-          displayVolume(volume);
-          itunes.setSoundVolume(actVolume);
-
+        if(volume < 0)
+          volume = 0;
+          
+        displayVolume(volume);
+        itunes.setSoundVolume(actVolume);
       }
       
       function endVolume(touched) {
@@ -1455,7 +1501,7 @@
             type  = 'Auto';
           }
 
-          var $line = $('<tr class="trTrack not-selectable" style="border-bottom:4px solid #000;"><td class="tdTrackNumber"><img src="img/playlist_'+icon+'.png"></td><td class="tdTrackInfo"><span class="tdTrackName">'+li.name+'</span><br>'+li.count+' Items, '+formatTime(li.duration)+'</td></tr>');
+          var $line = $('<tr class="trTrack not-selectable trPlayList_'+li.id_low+'_'+li.id_high+'" style="border-bottom:4px solid #000;"><td class="tdTrackNumber"><img src="img/playlist_'+icon+'.png"></td><td class="tdTrackInfo"><span class="tdTrackName">'+li.name+'</span><br>'+li.count+' Items, '+formatTime(li.duration)+'</td></tr>');
 
           $line.data("id_low" ,li.id_low);
           $line.data("id_high",li.id_high);
@@ -1473,6 +1519,7 @@
               return;
             }
 
+            sourceTrack = null;
             sourceList = {
               id_low : $item.data('id_low'),
               id_high: $item.data('id_high'),
@@ -1562,8 +1609,12 @@
 
         console.log('onPlaylist', type);
 
+        if(type == "Play") {
+          $('#spanNewList').hide();
+        }
+
         $('#td' + type + 'listsTitle').html(name);
-        $('#img' + type + 'listsBack').css('visibility', 'visible');
+        $('#img' + type + 'listsBack').show();
         $('#div' + type + 'list').scrollTop(0);
         $('#div' + type + 'list').animate({"left":"0"}, animateOptions);
         $('#div' + type + 'lists').animate({"left":"-100vw"}, animateOptions);
@@ -1584,9 +1635,23 @@
         );
       }
 
-      function onPlaylistsBack(type, touched) {
+      function onPlaylistsBack(type, touched, fromMenu) {
         if(touchScreen && !touched)
           return;
+
+        // add new list clicked
+        if($('#spanNewList').is(":visible") && !fromMenu) {
+          sourceTrack = null;
+          sourceList = {
+            id_low : 0,
+            id_high: 0,
+            name   : ""
+          };
+
+          $('#inputName').val(sourceList.name);
+          $('#renameMessage').show();
+          return;
+        }
           
         if(playlist[type].playlistAlbum) {
           playlist[type].playlistAlbum = null;
@@ -1602,12 +1667,14 @@
         } else {
           removeStorage(type + "list");
 
-          if(type == 'Play')
+          if(type == 'Play') {
             $('#td' + type + 'listsTitle').html("Playlists");
+            $('#spanNewList').show();
+          }
           else
             $('#td' + type + 'listsTitle').html("Media");
 
-          $('#img' + type + 'listsBack').css('visibility', 'hidden');
+          $('#img' + type + 'listsBack').hide();
           
           $('#div' + type + 'list').animate({"left":"100vw"}, function() {
             $('#table' + type + 'list tr').remove();
@@ -1835,6 +1902,7 @@
 
         }, function(e) {                  // hold
 
+          sourceList = null;
           sourceTrack = {
               idx: $tr.data('idx'),
               id_low: $tr.data('id_low'),
@@ -1959,24 +2027,49 @@
 
       function onRenameOk() {
         $('#renameMessage').hide();
-        itunes.renameList({"id_low":sourceList.id_low, "id_high":sourceList.id_high, "name": $('#inputName').val()});
+
+        if(sourceList.id_low) { // rename
+          itunes.renameList({"id_low":sourceList.id_low, "id_high":sourceList.id_high, "name": $('#inputName').val()});
+          return;
+        }
+
+        // add new list
+        itunes.addList({"name": $('#inputName').val()});
       }
 
 
       function onPopupRemove() {
+        if(sourceTrack) {
+          var cls = '.trTrack_'+sourceTrack.id_low+'_'+sourceTrack.id_high;
+          $(cls).addClass("toDelete");
+        }
+
+        if(sourceList) {
+          var cls = '.trPlayList_'+sourceList.id_low+'_'+sourceList.id_high;
+          $(cls).addClass("toDelete");
+        }
+
         $('#popupContainer').hide();
         $('#confirmRemove').show();
       }
 
       function onRemoveCancel() {
+        $(".toDelete").removeClass("toDelete");
         $('#confirmRemove').hide();
       }
 
       function onRemoveOk() {
         $('#confirmRemove').hide();
-        var pl = playlist[sourceTrack.context];
-        itunes.removeTrackFromList({"track": sourceTrack, "id_low":pl.id_low, "id_high":pl.id_high});
-      }
+
+        if(sourceTrack) {
+          var pl = playlist[sourceTrack.context];
+          itunes.removeTrackFromList({"track": sourceTrack, "id_low":pl.id_low, "id_high":pl.id_high});
+        }
+
+        if(sourceList) {
+          itunes.removeList({"id_low":sourceList.id_low, "id_high":sourceList.id_high});
+        }
+       }
 
       socket.on('removedTrackFromList', function(msg) {
         if(playlist['Play'].id_low != msg.id_low || playlist['Play'].id_high != msg.id_high)
@@ -2066,7 +2159,7 @@
           onPlaylistsBack(type, touched);
         }
 
-        onPlaylistsBack(type, touched);
+        onPlaylistsBack(type, touched, true);
       }
                   
       function onMainArtists(e, touched) {

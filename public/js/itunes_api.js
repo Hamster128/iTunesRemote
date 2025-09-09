@@ -84,6 +84,14 @@ itunes.renameList = function (msg) {
   socket.emit('renameList', msg);
 };
 
+itunes.removeList = function(msg) {
+  socket.emit('removeList', msg);
+};
+
+itunes.addList = function (msg) {
+  socket.emit('addList', msg);
+};
+
 itunes.addTrackToList = function (msg) {
   socket.emit('addTrackToList', msg);
 };

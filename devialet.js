@@ -72,6 +72,11 @@ server.on('message', function(msg, rinfo) {
 
   // fs.writeFileSync('devialet.dat', msg);
 
+  if(!status.on) {
+    status.sourceNr = -1;
+    status.source = 'OFF';
+  }
+
   onStatus(status);
 });
 
@@ -85,7 +90,7 @@ server.on('error', function(err) {
 });
 
 //--------------------------------------------------------------
-function sendPacket(msg) {
+function sendPacket(cmd, msg) {
 
   msg.writeUInt8(0x44, 0);  // magic value
   msg.writeUInt8(0x72, 1);
@@ -100,7 +105,13 @@ function sendPacket(msg) {
   let crc = crc16ccitt(msg.subarray(0, 12));
   msg.writeUInt16BE(crc, 12);
   
-  sendQueue.push(msg);
+  // remove already queued command of same type
+  sendQueue = sendQueue.filter(msg => msg.cmd != cmd);
+
+  sendQueue.push({
+    cmd,
+    msg
+  });
 
   if(!sleep) {
     sendNext();
@@ -121,7 +132,7 @@ function sendNext() {
     sendNext();
   }, 50);
 
-  client.send(msg, 0, msg.length, CMD_PORT, Host, function(err, bytes) {
+  client.send(msg.msg, 0, msg.msg.length, CMD_PORT, Host, function(err, bytes) {
     if (err) {
       console.log('devialet error', err);
     }
@@ -153,7 +164,7 @@ module.exports = {
     msg.writeUInt16BE(++cmd_cnt, 4);
     msg.writeUInt16BE( on ? CMD_ON : CMD_STANDBY, 6);
 
-    sendPacket(msg);
+    sendPacket(CMD_ON, msg);
   },
 
   //--------------------------------------------------------------
@@ -165,7 +176,7 @@ module.exports = {
     msg.writeUInt16BE(++cmd_cnt, 4);
     msg.writeUInt16BE( on ? CMD_MUTE : CMD_UNMUTE, 6);
 
-    sendPacket(msg);
+    sendPacket(CMD_MUTE, msg);
   },
 
   //--------------------------------------------------------------
@@ -213,7 +224,7 @@ module.exports = {
       cmd_cnt = 0;
     }
 
-    sendPacket(msg);
+    sendPacket(CMD_VOL, msg);
 
     status.vol = db;
   },
@@ -237,7 +248,7 @@ module.exports = {
       msg.writeUInt8(  val & 0x00FF, 9);
     }
 
-    sendPacket(msg);
+    sendPacket(CMD_SOURCE, msg);
   },
 
   //--------------------------------------------------------------

@@ -264,3 +264,65 @@
   filter: grayscale(100%); /* Makes the row appear gray */  
   
 }
+
+.volume-indicator {
+  position: relative;
+  left:-250px;
+  top:650px;
+  width: 150px;
+  height: 150px;
+  background: black;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.dB {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Center both vertically and horizontally */
+  font-size: 2.2em;
+  color: #AAA;
+  text-align: center;
+}
+
+.dsp {
+  position: absolute;
+  top: 72%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Center both vertically and horizontally */
+  font-size: 1.3em;
+  font-weight: bolder;
+  color: #7BF;
+  text-align: center;
+}
+
+.progress-circle {
+  width: 100%;
+  height: 100%;
+  transform: rotate(135deg);
+}
+
+.bg-circle {
+  fill: none;
+  stroke: #333; /* Background circle color */
+  stroke-width: 10;
+}
+
+.progress-bar {
+  fill: none;
+  stroke: #08f; /* Progress color */
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-dasharray: 282.6; /* Circumference of the circle (2 * Math.PI * r) */
+  stroke-dashoffset: 282.6; /* Start fully hidden */
+  transition: stroke-dashoffset 0.3s ease;
+}
+
+.toDelete {
+  background-color: #F88;
+}

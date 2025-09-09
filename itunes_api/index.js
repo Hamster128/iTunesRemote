@@ -162,6 +162,42 @@ let doNextInQueue = function() {
 			queueActive = false;
 			doNextInQueue();
 		});
+	} else if (job.func == 'getTrack') {
+		executeScriptRes('getTrack.js ' + job.id_low + ' ' + job.id_high, function(err, stdout, stderr) {
+			if (err) console.log('itunes.getTrack error', err);
+
+			if (job.cb) {
+				var str = iconv.decode(stdout, 'utf16');
+				try {
+					job.cb(JSON.parse(str));
+				} catch(e) {
+					console.log('itunes.getTrack json error', str);
+					job.cb({error: true});
+				}
+
+			}
+
+			queueActive = false;
+			doNextInQueue();
+		});
+	} else if (job.func == 'artworkOfTrack') {
+		executeScriptRes('artworkOfTrack.js ' + job.id_low + ' ' + job.id_high, function(err, stdout, stderr) {
+			if (err) console.log('itunes.artworkOfTrack error', err);
+
+			if (job.cb) {
+				var str = iconv.decode(stdout, 'utf16');
+				try {
+					job.cb(JSON.parse(str));
+				} catch(e) {
+					console.log('itunes.artworkOfTrack json error', str);
+					job.cb({found: 0});
+				}
+
+			}
+
+			queueActive = false;
+			doNextInQueue();
+		});
 	} else if (job.func == 'idxInQueue') {
 		executeScriptRes('idxInQueue.js ' + job.id_low + ' ' + job.id_high, function(err, stdout, stderr) {
 			if (err) console.log('itunes.idxInQueue error', err);
@@ -307,6 +343,9 @@ let doNextInQueue = function() {
 			doNextInQueue();
 		});
 	} else if (job.func == 'playlistTracks') {
+
+		job.id.count = job.id.count || 0;
+
 		executeScriptRes(
 			'playlistTracks.js ' +
 				job.id.id_low +
@@ -317,7 +356,9 @@ let doNextInQueue = function() {
 				' ' +
 				job.id.mode +
 				' ' +
-				job.id.sortOrder,
+				job.id.sortOrder +
+				' ' +
+				job.id.count,
 			function(err, stdout, stderr) {
 				if (err) console.log('itunes.playlistTracks error', err);
 
@@ -389,6 +430,19 @@ let doNextInQueue = function() {
 			queueActive = false;
 			doNextInQueue();
 		});
+	} else if (job.func == 'setPlayedCount') {
+		executeScript('setPlayedCount.js ' + job.r.id_low + ' ' + job.r.id_high + ' ' + job.r.enabled, function(
+			err,
+			stdout,
+			stderr
+		) {
+			if (err) console.log('itunes.setPlayedCount error ', err);
+
+			if (job.cb) job.cb();
+
+			queueActive = false;
+			doNextInQueue();
+		});
 	} else if (job.func == 'removeTrackFromList') {
 		executeScript(
 			'removeTrackFromList.js ' +
@@ -420,6 +474,41 @@ let doNextInQueue = function() {
 				if (err) console.log('itunes.renameList error ', err);
 
 				if (job.cb) job.cb();
+
+				queueActive = false;
+				doNextInQueue();
+			}
+		);
+	} else if (job.func == 'removeList') {
+		executeScript(
+			'removeList.js ' +
+				job.msg.id_low +
+				' ' +
+				job.msg.id_high,
+			function(err, stdout, stderr) {
+				if (err) console.log('itunes.removeList error ', err);
+
+				if (job.cb) job.cb();
+
+				queueActive = false;
+				doNextInQueue();
+			}
+		);
+	} else if (job.func == 'addList') {
+		executeScriptRes(
+			  'addList.js "' +
+				job.msg.name + '"',
+			function(err, stdout, stderr) {
+				if (err) console.log('itunes.addList error ', err);
+
+        if (job.cb) {
+          var str = iconv.decode(stdout, 'utf16');
+          try {
+            job.cb(JSON.parse(str));
+          } catch (e) {
+            console.log('itunes.addList('+job.msg.name+') error parsing [' + str + ']', e, stderr);
+          }
+        }
 
 				queueActive = false;
 				doNextInQueue();
@@ -524,6 +613,16 @@ exports.currentArtwork = function(cb) {
 	doNextInQueue();
 };
 
+exports.getTrack = async function(track, cb) {
+	queue.push({ func: 'getTrack', id_low: track.id_low, id_high: track.id_high, cb: cb });
+	doNextInQueue();
+}
+
+exports.artworkOfTrack = async function(track, cb) {
+	queue.push({ func: 'artworkOfTrack', id_low: track.id_low, id_high: track.id_high, cb: cb });
+	doNextInQueue();
+}
+
 exports.idxInQueue = async function(track) {
 	return new Promise(function(resolve) {
 		queue.push({ func: 'idxInQueue', id_low: track.id_low, id_high: track.id_high, cb: resolve });
@@ -586,6 +685,16 @@ exports.renameList = function(msg, cb) {
 	doNextInQueue();
 };
 
+exports.removeList = function(msg, cb) {
+	queue.push({ func: 'removeList', cb: cb, msg: msg });
+	doNextInQueue();
+};
+
+exports.addList = function(msg, cb) {
+	queue.push({ func: 'addList', cb: cb, msg: msg });
+	doNextInQueue();
+};
+
 exports.playlistTracks = function(id, cb) {
 	queue.push({ func: 'playlistTracks', cb: cb, id: id });
 	doNextInQueue();
@@ -613,6 +722,11 @@ exports.setRating = function(r, cb) {
 
 exports.setEnabled = function(r, cb) {
 	queue.push({ func: 'setEnabled', cb: cb, r: r });
+	doNextInQueue();
+};
+
+exports.setPlayedCount = function(r, cb) {
+	queue.push({ func: 'setPlayedCount', cb: cb, r: r });
 	doNextInQueue();
 };
 

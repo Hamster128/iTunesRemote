@@ -25,24 +25,34 @@ if(otrack)
     var track = album[i];
 
     var tr = {
-      "name":track.Name,
-      "album":track.Album,
-      "artist":track.Artist,
-      "albumArtist":track.AlbumArtist,
-      "composer":track.Composer,
-      "id_low":iTunesApp.ITObjectPersistentIDLow(track),
-      "id_high":iTunesApp.ITObjectPersistentIDHigh(track),
-      "trackNumber":track.TrackNumber,
-      "compilation":track.Compilation,
-      "bitRate":track.BitRate,
-      "duration":track.Duration,
+			"name":track.Name,
+			"album":track.Album,
+			"artist":track.Artist,
+			"albumArtist":track.AlbumArtist,
+			"composer":track.Composer,
+			"id_low":iTunesApp.ITObjectPersistentIDLow(track),
+			"id_high":iTunesApp.ITObjectPersistentIDHigh(track),
+			"trackNumber":track.TrackNumber,
+			"trackCount":track.TrackCount,
+			"compilation":track.Compilation,
+			"kind": track.Kind,
+			"bitRate":track.BitRate,
+			"duration":track.Duration,
       "rating":track.Rating,
       "enabled":track.Enabled,
-      "sampleRate":track.SampleRate,
-      "comment":track.Comment,
-      "kind":track.Kind,
-      "year":track.Year
+			"sampleRate":track.SampleRate,
+			"type":track.KindAsString,
+			"comment":track.Comment,
+			"year":track.Year,
+			"playedCount":track.PlayedCount,
+			"grouping":track.Grouping,
+			"volumeAdjustment": track.VolumeAdjustment,
+      "discCount":track.DiscCount,
+      "discNumber":track.DiscNumber  
     };
+
+    if(track.Kind == 3) tr.location = track.URL;
+    else                tr.location = track.Location;
 
     if(track.ratingKind)	// auto rating
       tr.rating = 0;
