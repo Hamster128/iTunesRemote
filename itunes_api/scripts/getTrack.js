@@ -10,6 +10,7 @@ function includeFile (filename) {
 }
 
 includeFile("json2.js");
+includeFile("utils.js");
 
 var track = mainLibrary.Tracks.ItemByPersistentID(WScript.Arguments.Item(1), WScript.Arguments.Item(0));
 
@@ -39,6 +40,7 @@ var tr = {
 	"comment":track.Comment,
 	"year":track.Year,
 	"playedCount":track.PlayedCount,
+	"playedDate": (track.PlayedDate && track.PlayedDate.getFullYear() > 1900) ? dateToString(track.PlayedDate) : "",
 	"grouping":track.Grouping,
 	"volumeAdjustment": track.VolumeAdjustment
 };

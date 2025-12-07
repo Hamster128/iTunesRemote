@@ -12,6 +12,8 @@ let settings;
 exports.state = false;
 exports.position = 0;
 exports.duration = 0;
+exports.id_low = 0;
+exports.id_high = 0;
 exports.repeat = 0;
 exports.shuffle = 0;
 exports.sampleRate = 0;
@@ -76,6 +78,8 @@ exports.startup = function(itunesP, settingsP) {
 
     const tr = playlist[playIdx];
     exports.duration = status.duration;
+    exports.id_low  = tr.id_low;
+    exports.id_high = tr.id_high;
     
     if(typeof status.duration != "number") {
       exports.duration = 0;
@@ -160,7 +164,7 @@ function checkSampleRateOfDevice(idx) {
   }
 
   const tr = playlist[idx];
-  let wantedRate = 0, force = 0, max = 0;
+  let wantedRate = 0, force = 0, min = 0, max = 0;
 
   if(      (tr.sampleRate % 48000) == 0) {
     max   = settings.mpvSamplerateMax48;
@@ -190,15 +194,28 @@ function checkSampleRateOfDevice(idx) {
     }
   }  
 
+  return exports.setSampleRate(wantedRate);
+}
+
+//---------------------------------------------------------------------------------------
+let wantedSampleRate = 0;
+
+exports.setSampleRate = function(wantedRate) {
+
   if(!wantedRate || wantedRate == exports.sampleRate) {
     return false;
+  }
+
+  if(changingSampleRate) {
+    wantedSampleRate = wantedRate;
+    return;  
   }
 
   mpvPlayer.volume(0);
   changingSampleRate = true;
   exports.sampleRate = wantedRate;
 
-  console.log("mpv setting sample rate", wantedRate, "for", tr.name);
+  console.log("mpv setting sample rate", wantedRate);
 
   exec(`SoundVolumeView.exe /SetDefaultFormat "${settings.wait4AudioDevice}" ${settings.mpvBitsPerSample} ${wantedRate}`, {encoding: 'utf16'}, async function(err, stdout, stderr) {
     console.log("mpv setting sample rate wait", exports.sampleRate, stdout.toString(), err);
@@ -209,6 +226,11 @@ function checkSampleRateOfDevice(idx) {
     mpvPlayer.goToPosition (0);
     mpvPlayer.volume(exports.volume);
     changingSampleRate = false;
+
+    if(wantedSampleRate) {
+      exports.setSampleRate(wantedSampleRate);
+      wantedSampleRate = 0;    
+    }
   });
 
   return true;

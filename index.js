@@ -683,6 +683,8 @@ function getState() {
       rsp.position    = mpv.position;
       rsp.duration    = mpv.duration;
       rsp.sampleRate  = mpv.sampleRate;
+      rsp.id_low      = mpv.id_low;
+      rsp.id_high     = mpv.id_high;
     }
 
     if(state.state != rsp.state || state.position != rsp.position || newPosSet) {
@@ -1133,6 +1135,7 @@ function checkAudioDevice() {
       iTunesEnabled = false;
 
 			// close iTunes
+      console.log('close iTunes');
 			execFile('nircmdc.exe', ['win', 'close', 'class', 'iTunes'], {}, function(err, stdout, stderr) {});
 
       if(settings.killAlso)
@@ -1212,7 +1215,7 @@ var lastCheckSleepTime = (new Date()).getTime();
 function checkComputerWasSleeping() {
   var currentTime = (new Date()).getTime();
   
-  if (currentTime > (lastCheckSleepTime + 600)) {
+  if (currentTime > (lastCheckSleepTime + 30000)) {
     console.log('Computer just woke up');
     continueAfterMute = false;
   }
@@ -1254,7 +1257,7 @@ function checkShairPort4W() {
     }
 
     if(iTunesEnabled) {
-      if(mpv.active()) {
+      if(settings.mpv) {
         mpv.pause();
       } else {
         itunes.pause();
@@ -1262,6 +1265,12 @@ function checkShairPort4W() {
     }
 
     setVolume(state.volume, true);
+    
+    if(settings.mpv) {
+      mpv.setSampleRate(44100);
+      state.sampleRate = mpv.sampleRate;
+      io.sockets.emit('state', state);
+    }
 
     if(settings.mpvVolumeControl || settings.vstVolumeControl) {
       execFile('nircmdc.exe', ["setsysvolume", 65535], {}, function(err, stdout, stderr) {});

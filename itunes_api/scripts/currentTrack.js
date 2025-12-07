@@ -13,9 +13,9 @@ else{
 				fileStream.Close();
 				eval(fileData);
 		}
-		
-		
+			
 	includeFile("json2.js");
+	includeFile("utils.js");
 
 	if(track)
 	{
@@ -40,6 +40,7 @@ else{
 			"comment":track.Comment,
 			"year":track.Year,
 			"playedCount":track.PlayedCount,
+			"playedDate": (track.PlayedDate && track.PlayedDate.getFullYear() > 1900) ? dateToString(track.PlayedDate) : "",
 			"grouping":track.Grouping,
 			"volumeAdjustment": track.VolumeAdjustment
 		};

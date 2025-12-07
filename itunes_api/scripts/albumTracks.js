@@ -14,6 +14,7 @@ function includeFile (filename) {
   
 includeFile("json2.js");
 includeFile("albumOfTrack.js");
+includeFile("utils.js");
 
 if(otrack)
 {
@@ -45,6 +46,7 @@ if(otrack)
 			"comment":track.Comment,
 			"year":track.Year,
 			"playedCount":track.PlayedCount,
+      "playedDate": (track.PlayedDate && track.PlayedDate.getFullYear() > 1900) ? dateToString(track.PlayedDate) : "",
 			"grouping":track.Grouping,
 			"volumeAdjustment": track.VolumeAdjustment,
       "discCount":track.DiscCount,

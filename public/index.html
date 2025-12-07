@@ -239,6 +239,7 @@
                 <tr><td id="trackBitRate"></td></tr>
                 <tr><td id="trackSampleRate"></td></tr>
                 <tr><td>Played Count: <span id="trackPlayedCount"></span></td></tr>
+                <tr><td>Played Date: <span id="trackPlayedDate"></span></td></tr>
                 <tr><td id="trackComposer"></td></tr>
                 <tr><td id="trackComment"></td></tr>
               </table>
@@ -755,8 +756,9 @@
         var oldState = state.state;
       
         state = msg;
-        
-        debugger;
+      
+        //console.log("state", JSON.stringify(msg));
+
         if(state.sampleRate) {
           sampleRate = state.sampleRate / 1000;
           $('.dsp').html(sampleRate.toString());
@@ -819,6 +821,8 @@
               $('#artwork' + currentArtwork).attr('src', 'img/current' + currentArtwork + '.png?unique=' + unique+track.trackNumber).stop().fadeIn(fadeTime);
             })();
           }	
+        } else {
+          console.log("show next artwork? wrong track ", state.id_low, track.id_low, state.id_high, track.id_high );
         }
 
         // adjust time display
@@ -934,6 +938,7 @@
         $('#trackComposer').html('Composer: '+msg.composer);
         $('#trackBitRate').html('Bit Rate: '+msg.bitRate+' kbps');
         $('#trackPlayedCount').html(msg.playedCount);
+        $('#trackPlayedDate').html(track.playedDate);
         $('#trackComment').html(msg.comment);
 /*
         $('#artist').html(msg.id_low);

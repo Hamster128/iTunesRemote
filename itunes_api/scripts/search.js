@@ -10,6 +10,7 @@ function includeFile (filename) {
   
   
 includeFile("json2.js");
+includeFile("utils.js");
 
 /*
 (0) Search all fields of each track.
@@ -71,6 +72,8 @@ for(var i = 1; i <= tracks.Count; i++) {
     "comment":track.Comment,
     "kind":track.Kind,
     "year":track.Year,
+    "playedCount":track.PlayedCount,
+    "playedDate": (track.PlayedDate && track.PlayedDate.getFullYear() > 1900) ? dateToString(track.PlayedDate) : "",
     "trackCount":track.TrackCount,
     "discCount":track.DiscCount,
     "discNumber":track.DiscNumber
