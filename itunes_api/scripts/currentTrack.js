@@ -40,7 +40,7 @@ else{
 			"comment":track.Comment,
 			"year":track.Year,
 			"playedCount":track.PlayedCount,
-			"playedDate": (track.PlayedDate && track.PlayedDate.getFullYear() > 1900) ? dateToString(track.PlayedDate) : "",
+			"playedDate": dateToString(track.PlayedDate),
 			"grouping":track.Grouping,
 			"volumeAdjustment": track.VolumeAdjustment
 		};

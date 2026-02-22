@@ -4,3 +4,5 @@ nodejs app which provides a web app for smart phones and TVs to remote control i
 for more informations see the wiki
 https://github.com/Hamster128/iTunesRemote/wiki
 
+Technical documentation:
+- `TECHNICAL_DOCUMENTATION.md`

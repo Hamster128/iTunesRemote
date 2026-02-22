@@ -870,7 +870,7 @@
 
         track = msg;
         
-        console.log(JSON.stringify(track));
+        console.log("track", JSON.stringify(track));
 
         if(!track.name) {
 
@@ -940,28 +940,31 @@
         $('#trackPlayedCount').html(msg.playedCount);
         $('#trackPlayedDate').html(track.playedDate);
         $('#trackComment').html(msg.comment);
-/*
-        $('#artist').html(msg.id_low);
-        $('#album').html(msg.id_high);
-*/
+        
         displayRating(track.enabled, track.rating);
                         
-        if(track.kind != 3 && track.kind != 999) {   // radio or airplay
+        if(track.kind != 3 && track.kind != 999) {   // not radio or airplay
           $('#tablePosition').css('display', '');
-          $('#tdAlbum').css('visibility', 'visible')
-          ;
+          $('#tdAlbum').css('visibility', 'visible');
         }
-        else {
+        else {                                        // radio or airplay
           $('#tablePosition').css('display', 'none');
           $('#tdAlbum').css('visibility', 'hidden');
         }
                         
-        if(track.kind == 999) {
+        if(track.kind == 999) {                       // airplay
           $('#tablePlayerControls').css('display', 'none');
           $('#tablePlayerMenu').css('display', 'none');
-        } else {
+        } else {                                      // not airplay
           $('#tablePlayerControls').css('display', '');
           $('#tablePlayerMenu').css('display', '');
+
+          if(track.hasOwnProperty("idx") && track.idx == track.count-1) {
+            $('#tdNext').css('visibility', 'hidden'); 
+          } else {
+            $('#tdNext').css('visibility', 'visible'); 
+            $('#tdNext').css('background-color', '');
+          }
         }
 
         markPlayingTrack();        

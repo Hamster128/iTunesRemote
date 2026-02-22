@@ -73,7 +73,7 @@ for(var i = 1; i <= tracks.Count; i++) {
     "kind":track.Kind,
     "year":track.Year,
     "playedCount":track.PlayedCount,
-    "playedDate": (track.PlayedDate && track.PlayedDate.getFullYear() > 1900) ? dateToString(track.PlayedDate) : "",
+    "playedDate": dateToString(track.PlayedDate),
     "trackCount":track.TrackCount,
     "discCount":track.DiscCount,
     "discNumber":track.DiscNumber

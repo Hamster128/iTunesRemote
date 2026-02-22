@@ -384,7 +384,6 @@ exports.playAlbumFrom = async function(msg, cb) {
     mpvPlayer.clearPlaylist();
     playlist = [];
     playIdx = 0;
-    let discNumber;
     let found = false;
 
     for(let tr of tracks) {
@@ -399,12 +398,6 @@ exports.playAlbumFrom = async function(msg, cb) {
 
       if(!tr.enabled) {
         continue;
-      }
-
-      if(discNumber === undefined) {
-        discNumber = tr.discNumber
-      } else if(discNumber !== tr.discNumber) {
-        break;
       }
 
       playlist.push(tr);
@@ -457,7 +450,7 @@ exports.playTrackInList = async function(msg, cb) {
     playlist = [];
     playIdx = 0;
 
-    if(msg.idx == -1) {
+    if(msg.idx == -1) { // shuffle
 
       if(tracks.length > LIMIT_FIRST_LOAD) {
         tracks.pop(); // "load more"
