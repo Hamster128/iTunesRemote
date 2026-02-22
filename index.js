@@ -14,21 +14,6 @@ const iconv = require('./itunes_api/node_modules/iconv-lite');
 const mpv = require('./mpv_player.js');
 const http_client = require("http");
 
-// Express 4.13/send 0.13 expects res._headers, which is not reliable on modern Node.
-// Provide a compatibility getter so stale dependencies can still read response headers.
-if (!Object.getOwnPropertyDescriptor(require('http').OutgoingMessage.prototype, '_headers')) {
-  Object.defineProperty(require('http').OutgoingMessage.prototype, '_headers', {
-    configurable: true,
-    enumerable: false,
-    get: function() {
-      return typeof this.getHeaders === 'function' ? this.getHeaders() : undefined;
-    },
-    set: function() {
-      // no-op: legacy libs may try to assign here
-    }
-  });
-}
-
 const VST_VOLUME_CTRL_URL = "http://127.0.0.1:8088/volume?value=";
 
 Con2log.keepFilesDays = 7;
