@@ -176,7 +176,7 @@
             <circle class="progress-bar" cx="50" cy="50" r="45"></circle>
           </svg>
           <div class="dB">-10 dB</div>
-          <div class="dsp">DSP</span></div>
+          <div class="dsp">DSP</div>
         </div>
       </div>
 
@@ -591,7 +591,7 @@
 
         $('.dB').text(`${volume}`);
 
-        var pct = mapValue(volume, 0, 100, 0, 75);
+        var pct = mapValue(volume, 0, 127, 0, 75);
         pct = Math.max(pct,  0);
         pct = Math.min(pct, 75);
 
@@ -687,10 +687,10 @@
 
         if(settings.dsp) {
           $('#imgDSP').attr("src", "img/dsp_on.png");
-          $(".dsp").show();
+          $(".dsp").show().removeClass("dsp-off");
         } else {
           $('#imgDSP').attr("src", "img/dsp_off.png");
-          $(".dsp").hide();
+          $(".dsp").show().addClass("dsp-off");
         }
       });
       
@@ -790,7 +790,8 @@
         // show next artwork?
         if(state.id_low == track.id_low && state.id_high == track.id_high) {
 
-          showArtwork = Math.ceil(state.position / track.duration * Math.min(10, track.artworks));
+          showArtwork = Math.ceil( (state.position -1 ) / track.duration * Math.min(10, track.artworks));
+          showArtwork = Math.max(0, showArtwork);
     
           if(track.kind == 3 || !showArtwork) {	// radio
             showArtwork = 1;

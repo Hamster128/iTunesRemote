@@ -1,5 +1,6 @@
 const exec = require('child_process').exec;
 const mpv = require('node-mpv');
+const moment = require('moment')
 
 let mpvPlayer;
 
@@ -19,6 +20,7 @@ exports.shuffle = 0;
 exports.sampleRate = 0;
 exports.mediaTitle = null;
 exports.volume = 100;
+exports.mode = "";
 
 let idleState, changingSampleRate;
 
@@ -54,6 +56,8 @@ exports.startup = function(itunesP, settingsP) {
   mpvPlayer = new mpv(opts); 
 
   mpvPlayer.observeProperty("core-idle", 20);
+  mpvPlayer.observeProperty("metadata/by-key/REPLAYGAIN_TRACK_GAIN", 21);
+  mpvPlayer.observeProperty("metadata/by-key/REPLAYGAIN_ALBUM_GAIN", 22);
   mpvPlayer.volume(exports.volume);
 
   //---------------------------------------------------------------------------------------
@@ -79,7 +83,9 @@ exports.startup = function(itunesP, settingsP) {
     const tr = playlist[playIdx];
     exports.duration = status.duration;
     exports.id_low  = tr.id_low;
-    exports.id_high = tr.id_high;
+    exports.id_high = tr.id_high;   
+    tr.REPLAYGAIN_TRACK_GAIN = status["metadata/by-key/REPLAYGAIN_TRACK_GAIN"];
+    tr.REPLAYGAIN_ALBUM_GAIN = status["metadata/by-key/REPLAYGAIN_ALBUM_GAIN"];
     
     if(typeof status.duration != "number") {
       exports.duration = 0;
@@ -120,29 +126,42 @@ exports.startup = function(itunesP, settingsP) {
   mpvPlayer.on('timeposition', function(seconds) {  // every 100 ms
     exports.position = seconds;
 
-    if(seconds > exports.duration - 0.4) {
+    if(playIdx === null || playIdx < 0) {
+      return;
+    } 
 
-      if(playIdx === null || playIdx < 0) {
-        return;
-      } 
+    if(seconds > exports.duration - 0.4) {    
+      if(playIdx < playlist.length-1) {
+        checkSampleRateOfDevice(playIdx + 1);
+      }        
+    } else
+    {
+      checkSampleRateOfDevice(playIdx);
+    }
 
+    if(seconds >= exports.duration - 10) {
       if(lastPlayedCount != playlist[playIdx]) {
-        console.log(`mpv playedCount++ for ${playlist[playIdx].name}`);
         lastPlayedCount = playlist[playIdx];
         itunes.setPlayedCount(playlist[playIdx]);
         playlist[playIdx].playedCount ++;
+        playlist[playIdx].playedDate = moment().format('YYYY-MM-DD HH:mm');
+        console.log(`mpv playedCount=${playlist[playIdx].playedCount} playedDate=${playlist[playIdx].playedDate} for ${playlist[playIdx].name}`);
       }
-
-      if(playIdx >= playlist.length-1) {
-        return;
-      }
-
-      checkSampleRateOfDevice(playIdx + 1);
     } else {
       lastPlayedCount = null;
     }
+
   });
 }
+
+//---------------------------------------------------------------------------------------
+exports.updateSettings = function(overrides) {
+  for (let key in overrides) {
+    if (key in settings) {
+      settings[key] = overrides[key];
+    }
+  }
+};
 
 //---------------------------------------------------------------------------------------
 exports.quit = function() {
@@ -221,9 +240,56 @@ exports.setSampleRate = function(wantedRate) {
     console.log("mpv setting sample rate wait", exports.sampleRate, stdout.toString(), err);
     await sleep(settings.mpvSamplerateWaitMS);
     console.log("mpv setting sample rate done", exports.sampleRate);
-    mpvPlayer.command("af", ["set", "lavfi=[aresample=" + exports.sampleRate + ":osf=s32:resampler=soxr:precision=32]"]);
-    //mpvPlayer.command("af", ["set", "lavfi=[aresample=" + exports.sampleRate + ":osf=s32:resampler=swr:filter_size=512]"]); 
-    mpvPlayer.goToPosition (0);
+
+    // like HQPlayer Sinc-L (highest fq extension, but less dynamic)
+    // phase=50
+    // Enforces strict linear phase (symmetric ringing before and after impulse, exactly like Sinc-L).
+    // passband_end=99
+    // Extends the flat frequency response right up to the edge of the audible band.
+    // stopband_begin=100
+    // Forces an extremely sharp cut-off transition at Nyquist.
+    // mpvPlayer.command("af", ["set", "lavfi=[aresample=" + exports.sampleRate + ":osf=s32:resampler=soxr:precision=32:passband_end=99:stopband_begin=100:phase=50]"]);
+
+    // like HQPlayer Sinc-Mx (less fq extension, but more dynamic)
+    // phase=25 (Intermediate Phase) 
+    // Shifts most of the energy to post-ringing while significantly suppressing pre-ringing.
+    // passband_end=95 & stopband_begin=105: 
+    // Relaxes the transition band slightly to allow a smoother, 
+    // more natural time-domain decay (less ringing energy overall).
+    // mpvPlayer.command("af", ["set", "lavfi=[aresample=" + exports.sampleRate + ":osf=s32:resampler=soxr:precision=32:passband_end=95:stopband_begin=105:phase=25]"]);
+
+    // NOS like dynamic with soxr
+    // phase=0 (pure minimum phase): 
+    // This completely eliminates pre-ringing energy before transients, 
+    // keeping leading edges (snare hits, plucks, leading-edge detail) 100% identical to NOS timing.
+    // passband_end=73
+    // Flat Passband to 16 kHz 
+    // Setting passband_end to 73% of Nyquist (approx. 16 kHz for 44.1 kHz redbook audio) 
+    // ensures total linear transparency through the critical midrange and lower treble.
+    // stopband_begin=125
+    // Gentle, Smooth Roll-Off, instead of a steep "brickwall" cut that causes harsh ringing, 
+    // pushing the stopband further out creates a relaxed, gradual roll-off. 
+    // This softly attenuates ultrasonic aliases (like NOS) 
+    // without creating sharp phase distortion or treble glare.
+    // mpvPlayer.command("af", ["set", "lavfi=[aresample=" + exports.sampleRate + ":osf=s32:resampler=soxr:precision=32:phase=0:passband_end=73:stopband_begin=125]"]);
+
+    // NOS dynamic with swr, less postringing than soxr and 64 bit precision
+    // filter_size=128
+    // Keeps the tap count very low. This prevents time-domain energy from "smearing" across time, 
+    // giving you the immediate, punchy transient response of NOS.
+    // soxr can be set to phase=0 but still has long postringing becaus of long filters
+    // cutoff=0.70
+    // Keeps the response flat through ~15.4 kHz (for 44.1 kHz material) 
+    // before initiating a soft roll-off, removing all harsh upper-frequency glare.
+    // filter_type=blackman_nutall
+    // Provides exceptional stopband rejection (-98 dB attenuation on first side-lobe) 
+    // while maintaining a gentle, natural transition slope without high-frequency harshness.
+    // soxr uses Kaiser windowing, which creates sharp, steep cuts
+    mpvPlayer.command("af", ["set", "lavfi=[aresample=" + exports.sampleRate + ":osf=s32:resampler=swr:filter_size=128:cutoff=0.70:filter_type=blackman_nutall:exact_rational=1]"]); 
+
+    if(exports.position < (settings.mpvSamplerateWaitMS / 1000) * 1.0)
+      mpvPlayer.goToPosition(0);
+
     mpvPlayer.volume(exports.volume);
     changingSampleRate = false;
 
@@ -379,6 +445,7 @@ exports.playAlbumFrom = async function(msg, cb) {
 
   mpvPlayer.stop();
   mpvPlayer.volume(exports.volume);
+  exports.mode = "album";
 
   itunes.albumTracks(msg, async function(tracks){
     mpvPlayer.clearPlaylist();
@@ -434,6 +501,7 @@ exports.playTrackInList = async function(msg, cb) {
 
   mpvPlayer.stop();
   mpvPlayer.volume(exports.volume);
+  exports.mode = "list";
 
   msg.skip = 0;  
   msg.count = 999999999;  // all tracks
@@ -460,10 +528,15 @@ exports.playTrackInList = async function(msg, cb) {
       shuffleArray(tracks);
 
       // start a track
-      const tr =tracks.pop();
+      let tr =tracks.pop();
       playlist.push(tr);
 
       checkSampleRateOfDevice(0);
+      mpvPlayer.append(tr.location);
+
+      // add second track to be able to skip
+      tr =tracks.pop();
+      playlist.push(tr);
       mpvPlayer.append(tr.location);
 
       mpvPlayer.next();

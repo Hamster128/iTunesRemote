@@ -12,9 +12,11 @@ const devialet = require('./devialet');
 const Con2log = require('./con2log');
 const iconv = require('./itunes_api/node_modules/iconv-lite');
 const mpv = require('./mpv_player.js');
+const hqp = require('./hqplayer.js');
 const http_client = require("http");
 
-const VST_VOLUME_CTRL_URL = "http://127.0.0.1:8088/volume?value=";
+const DEFAULT_VST_VOLUME_CTRL_URL = "http://127.0.0.1:8088/volume?value=";
+let VST_VOLUME_CTRL_URL = DEFAULT_VST_VOLUME_CTRL_URL;
 
 Con2log.keepFilesDays = 7;
 
@@ -36,12 +38,13 @@ var getStateTimer = 0, connections = 0;
 var devialetVol = null;
 var systemRequiredInterval = 0, systemRequiredOffTimer = 0;
 var newPosSet = false;
-var audioDeviceState = {"state":0, "mute":0, "source":""};
+var audioDeviceState = {"state":-1, "mute":0, "source":""};
 var audioDevicePresentTimer = 0;
 var audioDeviceCheckInterval = 500;
 var continueAfterMute = false;
 var iTunesEnabled = true;
 var lastTrack;
+let lastREPLAYGAIN_GAIN;
 let lastAirPlaySongStamp;
 let volChangedbyUs;
 
@@ -65,6 +68,12 @@ settings = JSON.parse(settings);
 if(!("startVolume" in settings)) {
   settings.startVolume = 30;
 }
+
+if(!("vstVolumeControlUrl" in settings)) {
+  settings.vstVolumeControlUrl = DEFAULT_VST_VOLUME_CTRL_URL;
+}
+
+VST_VOLUME_CTRL_URL = settings.vstVolumeControlUrl;
 
 
 function doNextArtworkQueue() {
@@ -166,18 +175,22 @@ io.on('connection', function(socket) {
     if(!iTunesEnabled)
       return;
       
-    if(mpv.active()) {
+    if(hqp.active()) {
+      hqp.play();
+    } else if(mpv.active()) {
       mpv.play();
     } else {
       itunes.play();
     }
   });
-  
+   
   socket.on('pause', function(msg){
     if(!iTunesEnabled)
       return;
       
-    if(mpv.active()) {
+    if(hqp.active()) {
+      hqp.pause();
+    } else if(mpv.active()) {
       mpv.pause();
     } else {
       itunes.pause();
@@ -191,7 +204,11 @@ io.on('connection', function(socket) {
     clearTimeout(getStateTimer);
     getStateTimer = 0;
 
-    if(mpv.active()) {
+    if(hqp.active()) {
+      hqp.backTrack();
+      getStateTimer = 1;
+      getState();
+    } else if(mpv.active()) {
       mpv.backTrack();
       getStateTimer = 1;
       getState();
@@ -203,7 +220,7 @@ io.on('connection', function(socket) {
     }
     
   });
-  
+   
   socket.on('nextTrack', function(msg){
     if(!iTunesEnabled)
       return;
@@ -211,7 +228,11 @@ io.on('connection', function(socket) {
     clearTimeout(getStateTimer);
     getStateTimer = 0;
 
-    if(mpv.active()) {
+    if(hqp.active()) {
+      hqp.nextTrack();
+      getStateTimer = 1;
+      getState();
+    } else if(mpv.active()) {
       mpv.nextTrack();
       getStateTimer = 1;
       getState();
@@ -227,7 +248,9 @@ io.on('connection', function(socket) {
     if(!iTunesEnabled)
       return;
       
-    if(mpv.active()) {
+    if(hqp.active()) {
+      hqp.setPlayerPosition(msg.newPosition);
+    } else if(mpv.active()) {
       mpv.setPlayerPosition(msg.newPosition);
     } else {
       itunes.setPlayerPosition(msg.newPosition);
@@ -241,6 +264,8 @@ io.on('connection', function(socket) {
     if(!iTunesEnabled)
       return;
       
+    console.log(`on setSoundVolume ${JSON.stringify(msg)}`);
+
     if(volChangedbyUs) {
       clearTimeout(volChangedbyUs);
     }
@@ -279,17 +304,27 @@ io.on('connection', function(socket) {
   socket.on('setRepeat', function(msg){
     if(!iTunesEnabled)
       return;
-      
+       
     itunes.setRepeat(msg.repeat);
-    mpv.repeat = msg.repeat;
+    if(settings.hqp) {
+      hqp.repeat = msg.repeat;
+    }
+    if(settings.mpv) {
+      mpv.repeat = msg.repeat;
+    }
   });
 
   socket.on('setShuffle', function(msg){
     if(!iTunesEnabled)
       return;
-      
+       
     itunes.setShuffle(msg.shuffle);
-    mpv.shuffle = msg.shuffle;
+    if(settings.hqp) {
+      hqp.shuffle = msg.shuffle;
+    }
+    if(settings.mpv) {
+      mpv.shuffle = msg.shuffle;
+    }
   });
   
   socket.on('albumTracks', function(msg){
@@ -312,7 +347,13 @@ io.on('connection', function(socket) {
     clearTimeout(getStateTimer);
     getStateTimer = 0;
 
-    if(settings.mpv) {
+    if(settings.hqp) {
+      hqp.playTrack(msg, function(){
+        getStateTimer = 1;
+        track.name = undefined;   // force sending track.queueInfo
+        getState();
+      });  
+    } else if(settings.mpv) {
       mpv.playTrack(msg, function(){
         getStateTimer = 1;
         track.name = undefined;   // force sending track.queueInfo
@@ -355,7 +396,12 @@ io.on('connection', function(socket) {
     clearTimeout(getStateTimer);
     getStateTimer = 0;
 
-    if(settings.mpv) {
+    if(settings.hqp) {
+      hqp.playAlbumFrom(msg, function() {
+        getStateTimer = 1;
+        getState();
+      });
+    } else if(settings.mpv) {
       mpv.playAlbumFrom(msg, function() {
         getStateTimer = 1;
         getState();
@@ -441,7 +487,12 @@ io.on('connection', function(socket) {
     clearTimeout(getStateTimer);
     getStateTimer = 0;
 
-    if(settings.mpv) {
+    if(settings.hqp) {
+      hqp.playTrackInList(msg, function(){
+        getStateTimer = 1;
+        getState();
+      });
+    } else if(settings.mpv) {
       mpv.playTrackInList(msg, function(){
         getStateTimer = 1;
         getState();
@@ -543,6 +594,7 @@ io.on('connection', function(socket) {
   });
     
   socket.on('settings', function(msg){
+    console.log(`on settings`);
     settings = msg;
     fs.writeFileSync("settings.json", JSON.stringify(msg, null, 2));
     io.sockets.emit('settings', settings);
@@ -552,11 +604,41 @@ io.on('connection', function(socket) {
 
     console.log('eq_apo', msg);
 
+    let configPath = "C:\\Program Files\\EqualizerAPO\\config\\config.txt";
+
     if(msg.enabled) {
-      fs.copyFileSync("C:\\Program Files\\EqualizerAPO\\config\\on.txt", "C:\\Program Files\\EqualizerAPO\\config\\config.txt");
+      fs.copyFileSync("C:\\Program Files\\EqualizerAPO\\config\\on.txt", configPath);
     } else {
-      fs.copyFileSync("C:\\Program Files\\EqualizerAPO\\config\\off.txt", "C:\\Program Files\\EqualizerAPO\\config\\config.txt");
+      fs.copyFileSync("C:\\Program Files\\EqualizerAPO\\config\\off.txt", configPath);
     }
+
+    // load # settings={..} overrides from EQ-Apo config file
+    let content = fs.readFileSync(configPath, "utf8");
+    let lines = content.split("\n");
+
+    for (let line of lines) {
+      line = line.trim();
+      let match = line.match(/^#\s*settings=\{([\s\S]*)\}$/); // "# settings={...}"
+      if (match) {
+        try {
+          let overrides = JSON.parse("{" + match[1] + "}");
+          for (let key in overrides) {
+            settings[key] = overrides[key];
+          }
+          console.log("EQ-Apo settings overrides applied ", overrides);
+          if(mpv.active()) {
+            mpv.updateSettings(overrides);
+          }
+          if(settings.hqp) {
+            hqp.updateSettings(overrides);
+          }
+        } catch (e) {
+          console.log("EQ-Apo settings parse error", e);
+        }
+        break;
+      }
+    }
+
   });
 
   socket.on('log', function(msg){
@@ -678,26 +760,26 @@ function getState() {
       return;
       }
   
-    if(settings.mpv) {
-      rsp.state       = mpv.state;
-      rsp.position    = mpv.position;
-      rsp.duration    = mpv.duration;
-      rsp.sampleRate  = mpv.sampleRate;
-      rsp.id_low      = mpv.id_low;
-      rsp.id_high     = mpv.id_high;
+    if(settings.hqp || settings.mpv) {
+      rsp.state       = settings.hqp ? hqp.state : mpv.state;
+      rsp.position    = settings.hqp ? hqp.position : mpv.position;
+      rsp.duration    = settings.hqp ? hqp.duration : mpv.duration;
+      rsp.sampleRate  = settings.hqp ? hqp.sampleRate : mpv.sampleRate;
+      rsp.id_low      = settings.hqp ? hqp.id_low : mpv.id_low;
+      rsp.id_high     = settings.hqp ? hqp.id_high : mpv.id_high;
     }
 
     if(state.state != rsp.state || state.position != rsp.position || newPosSet) {
-      var oldPos = state.position;
-      
-      let oldVol = state.volume;
+      const oldPos = state.position;      
+      const oldVol = state.volume;
+
       state = rsp;
       state.volume = oldVol;
       
-      if(!state.state || newPosSet)
+      if(newPosSet) {
         state.position = oldPos;
-        
-       newPosSet = false;
+        newPosSet = false;
+      }
     
       if(devialetVol != null) 
         setDevialetInfo();
@@ -713,7 +795,9 @@ function getState() {
       return;
     }
 
-    if(settings.mpv) {
+    if(settings.hqp) {
+      hqp.currentTrack(processCurrentTrack);
+    } else if(settings.mpv) {
       mpv.currentTrack(processCurrentTrack);
     } else {
       itunes.currentTrack(processCurrentTrack);
@@ -740,7 +824,11 @@ async function processCurrentTrack(rsp){
     currentName = track.originalName;
   }
 
-  if(rsp && (rsp.name != currentName || rsp.mediaTitle != track.mediaTitle || rsp.artist != track.artist || rsp.album != track.album || rsp.enabled != track.enabled)) {
+  if(rsp && (rsp.name != currentName || 
+            rsp.mediaTitle != track.mediaTitle || 
+            rsp.artist != track.artist || 
+            rsp.album != track.album || 
+            rsp.enabled != track.enabled)) {
     track = rsp;
 
     console.log(JSON.stringify(track));
@@ -749,7 +837,7 @@ async function processCurrentTrack(rsp){
       loadRadioArtwork(); 
     } else {
 
-      if(!settings.mpv && !track.name) {
+      if(!settings.hqp && !settings.mpv && !track.name) {
         // player stopped, check if there were some tracks added to the queue while playing
         if(lastTrack && lastTrack['queueInfo'] && lastTrack.queueInfo.idx < lastTrack.queueInfo.count) {
           itunes.playQueueFrom(lastTrack.queueInfo.idx + 1, function() {
@@ -762,7 +850,7 @@ async function processCurrentTrack(rsp){
 
       lastTrack = track;
 
-      if(!settings.mpv) {
+      if(!settings.hqp && !settings.mpv) {
         track.queueInfo = await itunes.idxInQueue(track);
         itunes.currentArtwork(processArtwork);
       } else {
@@ -771,6 +859,61 @@ async function processCurrentTrack(rsp){
 
     }
   }
+
+  if((settings.mpv || settings.hqp) && settings.vstVolumeControl && rsp) {
+
+    const currentGain = (settings.hqp ? hqp.mode : mpv.mode) == "album" ? rsp.REPLAYGAIN_ALBUM_GAIN : rsp.REPLAYGAIN_TRACK_GAIN;
+
+    if(currentGain != lastREPLAYGAIN_GAIN) {
+
+        // checking volume change due to album/track change
+      if(lastREPLAYGAIN_GAIN !== undefined && currentGain) {
+        let oldGain = parseFloat(lastREPLAYGAIN_GAIN);
+        let newGain = parseFloat(currentGain);
+
+        if(Number.isFinite(oldGain) && Number.isFinite(newGain)) {
+
+          const MIN_DB = "vstVolumeControlMinDb" in settings ? parseFloat(settings.vstVolumeControlMinDb) : -45.0;
+          const MAX_DB = "vstVolumeControlMaxDb" in settings ? parseFloat(settings.vstVolumeControlMaxDb) : 20.0;
+          const DB_RANGE = MAX_DB - MIN_DB;
+
+          let currentDb = MIN_DB + (state.volume / 100) * DB_RANGE;
+          let deltaDb = newGain - oldGain;
+          let newDb = currentDb + deltaDb;
+
+          let newVol = Math.round(((newDb - MIN_DB) / DB_RANGE) * 100);
+
+          if(newVol < 0) {
+            newVol = 0;
+          } else if(newVol > 100) {
+            newVol = 100;
+          }
+
+          if(newVol != state.volume) {
+            console.log(`adjusting ${settings.hqp ? hqp.mode : mpv.mode} volume to ${deltaDb.toFixed(1)}dB ... ${state.volume}% -> ${newVol}%`);
+            setVolume(newVol);
+          }
+        }
+      }
+    }
+
+    if((settings.hqp ? hqp.mode : mpv.mode) == "album") {
+      if("REPLAYGAIN_ALBUM_GAIN" in rsp) {
+        if(rsp.REPLAYGAIN_ALBUM_GAIN !== lastREPLAYGAIN_GAIN) { 
+          console.log(`lastREPLAYGAIN_GAIN ${lastREPLAYGAIN_GAIN} -> ${rsp.REPLAYGAIN_ALBUM_GAIN} mode=${settings.hqp ? hqp.mode : mpv.mode}`);
+          lastREPLAYGAIN_GAIN = rsp.REPLAYGAIN_ALBUM_GAIN;
+        }
+      }
+    } else {
+      if("REPLAYGAIN_TRACK_GAIN" in rsp) {
+        if(rsp.REPLAYGAIN_TRACK_GAIN !== lastREPLAYGAIN_GAIN) { 
+          console.log(`lastREPLAYGAIN_GAIN ${lastREPLAYGAIN_GAIN} -> ${rsp.REPLAYGAIN_TRACK_GAIN} mode=${settings.hqp ? hqp.mode : mpv.mode}`);
+          lastREPLAYGAIN_GAIN = rsp.REPLAYGAIN_TRACK_GAIN;
+        }
+      }
+    }
+  }
+
     
   if(getStateTimer)
     getStateTimer = setTimeout(getState, 500);
@@ -788,6 +931,7 @@ function loadRadioArtwork() {
   }
 
   if(currentArtwork == track.originalName) {
+    console.log(`radio artwork already loaded`);
     io.sockets.emit('track', track);
     return;
   }
@@ -795,6 +939,7 @@ function loadRadioArtwork() {
   var is = fs.createReadStream('public/thumbs_radio/' + track.originalName + '.jpg')
   
   is.on('end', function() {    
+    console.log(`radio artwork loaded`);
     currentArtwork = track.originalName;
     io.sockets.emit('track', track);
   });
@@ -805,6 +950,7 @@ function loadRadioArtwork() {
     var is = fs.createReadStream('public/img/no_radio_icon.jpg')
     
     is.on('end', function() {
+      console.log(`radio default artwork loaded`);
       currentArtwork = track.originalName;
       io.sockets.emit('track', track);
     });
@@ -839,6 +985,7 @@ function processArtwork(resp){
     return;
     
   if(resp.found) {
+    console.log(`itunes.currentArtwork() found.`);
     track.artworks = resp.found;
     io.sockets.emit('track', track);
     return;
@@ -870,8 +1017,6 @@ function processArtwork(resp){
 function setVolume(vol, force) {
 
   if(vol == state.volume && !force) {
-    io.sockets.emit('state', state); 
-    io.sockets.emit('volume', vol);
     return;
   }
 
@@ -879,8 +1024,13 @@ function setVolume(vol, force) {
 
   console.log(`setVolume(${vol})`);
 
-  if(settings.mpv && settings.mpvVolumeControl) {
-    mpv.setVolume(vol);
+  if((settings.mpv && settings.mpvVolumeControl) || (settings.hqp)) {
+    if(settings.mpv && settings.mpvVolumeControl) {
+      mpv.setVolume(vol);
+    }
+    if(settings.hqp) {
+      hqp.setVolume(vol);
+    }
     io.sockets.emit('state', state);
     io.sockets.emit('volume', vol);
     execFile('nircmdc.exe', ["setappvolume", "Shairport4wx64.exe", vol / 500], {}, function(err, stdout, stderr) {});
@@ -888,7 +1038,18 @@ function setVolume(vol, force) {
   }
 
   if(settings.vstVolumeControl) {   
-    http_client.get(VST_VOLUME_CTRL_URL + vol, (res) => {});  
+    http_client.get(VST_VOLUME_CTRL_URL + vol, (res) => {
+      let responseData = "";
+
+      res.on("data", (chunk) => {
+        responseData += chunk.toString();
+      });
+
+      res.on("end", () => {
+        console.log(`vst volume response:`, responseData);
+      });
+    });  
+    
     io.sockets.emit('state', state); 
     io.sockets.emit('volume', vol);
     return;
@@ -906,7 +1067,12 @@ function setVolume(vol, force) {
     volChangeBusy = false;
     io.sockets.emit('state', state); 
     io.sockets.emit('volume', vol);
-    mpv.setVolume(100);
+    if(settings.mpv) {
+      mpv.setVolume(100);
+    }
+    if(settings.hqp) {
+      hqp.setVolume(exports.volume);
+    }
 
     if(targetVol !== null) {
       let setVol = targetVol;
@@ -921,9 +1087,19 @@ function mute(on) {
   });
 }
 
+let audioIsActive, checkAudioActiveBusy;
+
 function checkAudioActive() {
 
+  if(checkAudioActiveBusy) {
+    return;
+  }
+
+  checkAudioActiveBusy = true;
+
   exec('SoundVolumeView.exe /sjson', {encoding: 'utf16',  maxBuffer: 1024 * 1024 * 10}, function(err, stdout, stderr) {
+
+    checkAudioActiveBusy = false;
 
     let str = iconv.decode(stdout, 'utf16');
     let data = JSON.parse(str);
@@ -936,11 +1112,20 @@ function checkAudioActive() {
 
 
       // someone is playing
-      io.sockets.emit('active', true);
+      if(audioIsActive !== true) {
+        console.log(`checkAudioActive() true`);
+        io.sockets.emit('active', true);
+        audioIsActive = true;
+      }
+
       return;
     }
 
-    io.sockets.emit('active', false);
+    if(audioIsActive !== false) {
+      console.log(`checkAudioActive() false`);
+      io.sockets.emit('active', false);
+      audioIsActive = false;
+    }
   });
 
 }
@@ -1036,17 +1221,11 @@ function checkAudioDevice() {
           if(audioDeviceState.state < 1)
             return;
         
-          if(!settings.devialet) {
-            setVolume(settings.startVolume, true);
-
-            if(settings.mpvVolumeControl || settings.vstVolumeControl) {
-              execFile('nircmdc.exe', ["setsysvolume", 65535], {}, function(err, stdout, stderr) {});
-            }
-          }
-
           console.log(settings.wait4AudioDevice+' starting iTunes...');
         
-          if(settings.mpv) {
+          if(settings.hqp) {
+            hqp.startup(itunes, settings);
+          } else if(settings.mpv) {
             mpv.startup(itunes, settings);
           }
           
@@ -1070,6 +1249,14 @@ function checkAudioDevice() {
             
             audioDeviceState.state = 2;
             io.sockets.emit('deviceState', audioDeviceState);
+
+            if(!settings.devialet) {
+              setVolume(settings.startVolume, true);
+
+              if(settings.mpvVolumeControl || settings.vstVolumeControl) {
+                execFile('nircmdc.exe', ["setsysvolume", 65535], {}, function(err, stdout, stderr) {});
+              }
+            }
             
             setTimeout(checkAudioDevice, audioDeviceCheckInterval);
           }, 3000);
@@ -1141,12 +1328,16 @@ function checkAudioDevice() {
         execFile('nircmdc.exe', ['killprocess', settings.killAlso], {}, function(err, stdout, stderr) {});
 
       mpv.quit();
+      hqp.quit();
 
       continueAfterMute = false;
       audioDeviceState.state = newState;
       io.sockets.emit('deviceState', audioDeviceState);
       
-      setTimeout(checkAudioDevice, audioDeviceCheckInterval);
+      setTimeout(function() {
+        process.exit(0);
+      }, 1000);
+//      setTimeout(checkAudioDevice, audioDeviceCheckInterval);
     }
     
   });
@@ -1185,14 +1376,26 @@ devialet.on("status", function(status){
   checkComputerWasSleeping();
   
   if(status.mute != audioDeviceState.mute && audioDeviceState.state == 2) {
-  
+   
     if(status.mute && state.state) {
-      itunes.pause();
+      if(settings.hqp) {
+        hqp.pause();
+      } else if(settings.mpv) {
+        mpv.pause();
+      } else {
+        itunes.pause();
+      }
       continueAfterMute = true;
     }
     
     if(!status.mute && continueAfterMute) {
-      itunes.play();
+      if(settings.hqp) {
+        hqp.play();
+      } else if(settings.mpv) {
+        mpv.play();
+      } else {
+        itunes.play();
+      }
       continueAfterMute = false;
     }
   }
@@ -1256,7 +1459,9 @@ function checkShairPort4W() {
     }
 
     if(iTunesEnabled) {
-      if(settings.mpv) {
+      if(settings.hqp) {
+        hqp.pause();
+      } else if(settings.mpv) {
         mpv.pause();
       } else {
         itunes.pause();
@@ -1264,8 +1469,13 @@ function checkShairPort4W() {
     }
 
     setVolume(state.volume, true);
+    lastREPLAYGAIN_ALBUM_GAIN = undefined;
     
-    if(settings.mpv) {
+    if(settings.hqp) {
+      hqp.setSampleRate(44100);
+      state.sampleRate = hqp.sampleRate;
+      io.sockets.emit('state', state);
+    } else if(settings.mpv) {
       mpv.setSampleRate(44100);
       state.sampleRate = mpv.sampleRate;
       io.sockets.emit('state', state);
