@@ -44,7 +44,7 @@ All settings are stored in `settings.json`.
 | `mpvSamplerateForce48` | number | `0` | Force a specific sample rate for 48 kHz tracks (0 = disabled) |
 | `mpvBitsPerSample` | number | `32` | Bits per sample for the audio device |
 | `mpvSamplerateWaitMS` | number | `1000` | Milliseconds to wait after changing the sample rate |
-| `mpvResampleFilter` | string | `"osf=s32:resampler=swr:filter_size=128:cutoff=0.70:filter_type=blackman_nutall:exact_rational=1"` | MPV aresample filter parameters applied after sample rate changes |
+| `mpvResampleFilter` | string | SWR/Blackman-Nutall (see below) | MPV aresample filter parameters applied after sample rate changes |
 | `hqpHost` | string | `"127.0.0.1"` | HQPlayer control API host |
 | `hqpPort` | number | `2727` | HQPlayer control API port |
 
