@@ -156,10 +156,19 @@ exports.startup = function(itunesP, settingsP) {
 
 //---------------------------------------------------------------------------------------
 exports.updateSettings = function(overrides) {
+  let resampleFilterChanged = false;
+
   for (let key in overrides) {
     if (key in settings) {
+      if (key === 'mpvResampleFilter' && settings[key] !== overrides[key]) {
+        resampleFilterChanged = true;
+      }
       settings[key] = overrides[key];
     }
+  }
+
+  if (resampleFilterChanged && exports.sampleRate > 0) {
+    exports.setSampleRate(exports.sampleRate, true);
   }
 };
 
@@ -219,9 +228,9 @@ function checkSampleRateOfDevice(idx) {
 //---------------------------------------------------------------------------------------
 let wantedSampleRate = 0;
 
-exports.setSampleRate = function(wantedRate) {
+exports.setSampleRate = function(wantedRate, force) {
 
-  if(!wantedRate || wantedRate == exports.sampleRate) {
+  if(!wantedRate || (wantedRate == exports.sampleRate && !force)) {
     return false;
   }
 
@@ -241,51 +250,7 @@ exports.setSampleRate = function(wantedRate) {
     await sleep(settings.mpvSamplerateWaitMS);
     console.log("mpv setting sample rate done", exports.sampleRate);
 
-    // like HQPlayer Sinc-L (highest fq extension, but less dynamic)
-    // phase=50
-    // Enforces strict linear phase (symmetric ringing before and after impulse, exactly like Sinc-L).
-    // passband_end=99
-    // Extends the flat frequency response right up to the edge of the audible band.
-    // stopband_begin=100
-    // Forces an extremely sharp cut-off transition at Nyquist.
-    // mpvPlayer.command("af", ["set", "lavfi=[aresample=" + exports.sampleRate + ":osf=s32:resampler=soxr:precision=32:passband_end=99:stopband_begin=100:phase=50]"]);
-
-    // like HQPlayer Sinc-Mx (less fq extension, but more dynamic)
-    // phase=25 (Intermediate Phase) 
-    // Shifts most of the energy to post-ringing while significantly suppressing pre-ringing.
-    // passband_end=95 & stopband_begin=105: 
-    // Relaxes the transition band slightly to allow a smoother, 
-    // more natural time-domain decay (less ringing energy overall).
-    // mpvPlayer.command("af", ["set", "lavfi=[aresample=" + exports.sampleRate + ":osf=s32:resampler=soxr:precision=32:passband_end=95:stopband_begin=105:phase=25]"]);
-
-    // NOS like dynamic with soxr
-    // phase=0 (pure minimum phase): 
-    // This completely eliminates pre-ringing energy before transients, 
-    // keeping leading edges (snare hits, plucks, leading-edge detail) 100% identical to NOS timing.
-    // passband_end=73
-    // Flat Passband to 16 kHz 
-    // Setting passband_end to 73% of Nyquist (approx. 16 kHz for 44.1 kHz redbook audio) 
-    // ensures total linear transparency through the critical midrange and lower treble.
-    // stopband_begin=125
-    // Gentle, Smooth Roll-Off, instead of a steep "brickwall" cut that causes harsh ringing, 
-    // pushing the stopband further out creates a relaxed, gradual roll-off. 
-    // This softly attenuates ultrasonic aliases (like NOS) 
-    // without creating sharp phase distortion or treble glare.
-    // mpvPlayer.command("af", ["set", "lavfi=[aresample=" + exports.sampleRate + ":osf=s32:resampler=soxr:precision=32:phase=0:passband_end=73:stopband_begin=125]"]);
-
-    // NOS dynamic with swr, less postringing than soxr and 64 bit precision
-    // filter_size=128
-    // Keeps the tap count very low. This prevents time-domain energy from "smearing" across time, 
-    // giving you the immediate, punchy transient response of NOS.
-    // soxr can be set to phase=0 but still has long postringing becaus of long filters
-    // cutoff=0.70
-    // Keeps the response flat through ~15.4 kHz (for 44.1 kHz material) 
-    // before initiating a soft roll-off, removing all harsh upper-frequency glare.
-    // filter_type=blackman_nutall
-    // Provides exceptional stopband rejection (-98 dB attenuation on first side-lobe) 
-    // while maintaining a gentle, natural transition slope without high-frequency harshness.
-    // soxr uses Kaiser windowing, which creates sharp, steep cuts
-    mpvPlayer.command("af", ["set", "lavfi=[aresample=" + exports.sampleRate + ":osf=s32:resampler=swr:filter_size=128:cutoff=0.70:filter_type=blackman_nutall:exact_rational=1]"]); 
+    mpvPlayer.command("af", ["set", "lavfi=[aresample=" + exports.sampleRate + ":" + settings.mpvResampleFilter + "]"]);
 
     if(exports.position < (settings.mpvSamplerateWaitMS / 1000) * 1.0)
       mpvPlayer.goToPosition(0);
