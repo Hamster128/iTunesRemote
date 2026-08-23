@@ -612,33 +612,7 @@ io.on('connection', function(socket) {
       fs.copyFileSync("C:\\Program Files\\EqualizerAPO\\config\\off.txt", configPath);
     }
 
-    // load # settings={..} overrides from EQ-Apo config file
-    let content = fs.readFileSync(configPath, "utf8");
-    let lines = content.split("\n");
-
-    for (let line of lines) {
-      line = line.trim();
-      let match = line.match(/^#\s*settings=\{([\s\S]*)\}$/); // "# settings={...}"
-      if (match) {
-        try {
-          let overrides = JSON.parse("{" + match[1] + "}");
-          for (let key in overrides) {
-            settings[key] = overrides[key];
-          }
-          console.log("EQ-Apo settings overrides applied ", overrides);
-          if(mpv.active()) {
-            mpv.updateSettings(overrides);
-          }
-          if(settings.hqp) {
-            hqp.updateSettings(overrides);
-          }
-        } catch (e) {
-          console.log("EQ-Apo settings parse error", e);
-        }
-        break;
-      }
-    }
-
+    loadEqApoOverrides();
   });
 
   socket.on('log', function(msg){
@@ -651,6 +625,41 @@ io.on('connection', function(socket) {
   socket.emit('deviceState', audioDeviceState);
   socket.emit('volume', state.volume);
 });
+
+function loadEqApoOverrides() {
+  // load # settings={..} overrides from EQ-Apo config file
+  let configPath = "C:\\Program Files\\EqualizerAPO\\config\\config.txt";
+
+  if(!fs.existsSync(configPath)) {
+    return;
+  }
+
+  let content = fs.readFileSync(configPath, "utf8");
+  let lines = content.split("\n");
+
+  for (let line of lines) {
+    line = line.trim();
+    let match = line.match(/^#\s*settings=\{([\s\S]*)\}$/); // "# settings={...}"
+    if (match) {
+      try {
+        let overrides = JSON.parse("{" + match[1] + "}");
+        for (let key in overrides) {
+          settings[key] = overrides[key];
+        }
+        console.log("EQ-Apo settings overrides applied ", overrides);
+        if(mpv.active()) {
+          mpv.updateSettings(overrides);
+        }
+        if(settings.hqp) {
+          hqp.updateSettings(overrides);
+        }
+      } catch (e) {
+        console.log("EQ-Apo settings parse error", e);
+      }
+      break;
+    }
+  }
+}
 
 
 var port = 81;
@@ -1345,6 +1354,8 @@ function checkAudioDevice() {
 
 
 }
+
+loadEqApoOverrides();
 
 if('wait4AudioDevice' in settings) 
   checkAudioDevice();
