@@ -192,34 +192,28 @@ function checkSampleRateOfDevice(idx) {
   }
 
   const tr = playlist[idx];
-  let wantedRate = 0, force = 0, min = 0, max = 0;
+  let wantedRate = 0, min = 0, max = 0;
 
   if(      (tr.sampleRate % 48000) == 0) {
     max   = settings.mpvSamplerateMax48;
     min   = settings.mpvSamplerateMin48;
-    force = settings.mpvSamplerateForce48;
   }
   else if( (tr.sampleRate % 44100) == 0) {
     max   = settings.mpvSamplerateMax44;
     min   = settings.mpvSamplerateMin44;
-    force = settings.mpvSamplerateForce44;
   }
 
   wantedRate = tr.sampleRate;
 
-  if(force) {
-    wantedRate = force;
-  } else {
-    if(min) {
-      if(wantedRate < min) {
-        wantedRate = min;
-      }    
-    }
-    if(max) {
-      if(wantedRate > max) {
-        wantedRate = max;
-      }    
-    }
+  if(min) {
+    if(wantedRate < min) {
+      wantedRate = min;
+    }    
+  }
+  if(max) {
+    if(wantedRate > max) {
+      wantedRate = max;
+    }    
   }  
 
   return exports.setSampleRate(wantedRate);

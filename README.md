@@ -38,10 +38,8 @@ All settings are stored in `settings.json`.
 |-----|------|---------|-------------|
 | `mpvSamplerateMin44` | number | `0` | Minimum sample rate for 44.1 kHz tracks (0 = disabled) |
 | `mpvSamplerateMax44` | number | `0` | Maximum sample rate for 44.1 kHz tracks (0 = disabled) |
-| `mpvSamplerateForce44` | number | `0` | Force a specific sample rate for 44.1 kHz tracks (0 = disabled) |
 | `mpvSamplerateMin48` | number | `0` | Minimum sample rate for 48 kHz tracks (0 = disabled) |
 | `mpvSamplerateMax48` | number | `0` | Maximum sample rate for 48 kHz tracks (0 = disabled) |
-| `mpvSamplerateForce48` | number | `0` | Force a specific sample rate for 48 kHz tracks (0 = disabled) |
 | `mpvBitsPerSample` | number | `32` | Bits per sample for the audio device |
 | `mpvSamplerateWaitMS` | number | `1000` | Milliseconds to wait after changing the sample rate |
 | `mpvResampleFilter` | string | SWR/Blackman-Nutall (see below) | MPV aresample filter parameters applied after sample rate changes |

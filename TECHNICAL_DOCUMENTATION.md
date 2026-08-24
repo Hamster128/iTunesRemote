@@ -80,8 +80,8 @@ The runtime also supports:
 ## 5.2 mpv Sample Rate Controls
 - `mpvBitsPerSample`
 - `mpvSamplerateWaitMS`
-- `mpvSamplerateMax44`, `mpvSamplerateMin44`, `mpvSamplerateForce44`
-- `mpvSamplerateMax48`, `mpvSamplerateMin48`, `mpvSamplerateForce48`
+- `mpvSamplerateMax44`, `mpvSamplerateMin44`
+- `mpvSamplerateMax48`, `mpvSamplerateMin48`
 
 ## 5.3 Volume Routing
 - `mpvVolumeControl` (`bool`): Keep system volume max; control mpv internal volume.
