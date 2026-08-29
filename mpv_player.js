@@ -246,7 +246,7 @@ exports.setSampleRate = function(wantedRate, force) {
 
     mpvPlayer.command("af", ["set", "lavfi=[aresample=" + exports.sampleRate + ":" + settings.mpvResampleFilter + "]"]);
 
-    if(exports.position < (settings.mpvSamplerateWaitMS / 1000) * 1.0)
+    if(exports.position < (settings.mpvSamplerateWaitMS / 1000) + 1.0)
       mpvPlayer.goToPosition(0);
 
     mpvPlayer.volume(exports.volume);

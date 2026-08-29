@@ -42,7 +42,7 @@ All settings are stored in `settings.json`.
 | `mpvSamplerateMax48` | number | `0` | Maximum sample rate for 48 kHz tracks (0 = disabled) |
 | `mpvBitsPerSample` | number | `32` | Bits per sample for the audio device |
 | `mpvSamplerateWaitMS` | number | `1000` | Milliseconds to wait after changing the sample rate |
-| `mpvResampleFilter` | string | SWR/Blackman-Nutall (see below) | MPV aresample filter parameters applied after sample rate changes |
+| `mpvResampleFilter` | string | SWR/Blackman-Nuttall (see below) | MPV aresample filter parameters applied after sample rate changes |
 | `hqpHost` | string | `"127.0.0.1"` | HQPlayer control API host |
 | `hqpPort` | number | `2727` | HQPlayer control API port |
 
@@ -53,7 +53,7 @@ The `mpvResampleFilter` setting controls the audio resampling filters applied vi
 The default uses the SWR resampler with a Blackman-Nutall window:
 
 ```
-osf=s32:resampler=swr:filter_size=128:cutoff=0.70:filter_type=blackman_nutall:exact_rational=1
+osf=s32:resampler=swr:filter_size=128:resample_cutoff=0.70:filter_type=blackman_nuttall:exact_rational=1
 ```
 
 Alternative configurations (based on HQPlayer filter characteristics) are documented below. To use one, replace the value of `mpvResampleFilter` in `settings.json`.
@@ -99,11 +99,11 @@ osf=s32:resampler=soxr:precision=32:phase=0:passband_end=73:stopband_begin=125:c
 NOS-like dynamics using the SWR resampler with 64-bit precision and less post-ringing than SOX.
 
 - `filter_size=128` — Keeps the tap count very low. This prevents time-domain energy from "smearing" across time, giving you the immediate, punchy transient response of NOS. (Note: SOX can be set to `phase=0` but still has long postringing because of long filters.)
-- `cutoff=0.70` — Keeps the response flat through ~15.4 kHz (for 44.1 kHz material) before initiating a soft roll-off, removing all harsh upper-frequency glare.
+- `resample_cutoff=0.70` — Keeps the response flat through ~15.4 kHz (for 44.1 kHz material) before initiating a soft roll-off, removing all harsh upper-frequency glare.
 - `filter_type=blackman_nutall` — Provides exceptional stopband rejection (-98 dB attenuation on first side-lobe) while maintaining a gentle, natural transition slope without high-frequency harshness. (Note: SOX uses Kaiser windowing, which creates sharp, steep cuts.)
 
 ```
-osf=s32:resampler=swr:filter_size=128:cutoff=0.70:filter_type=blackman_nutall:exact_rational=1
+osf=s32:resampler=swr:filter_size=128:resample_cutoff=0.70:filter_type=blackman_nuttall:exact_rational=1
 ```
 
 ### Volume Control
