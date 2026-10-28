@@ -25,6 +25,23 @@ exports.mode = "";
 let idleState, changingSampleRate;
 
 //---------------------------------------------------------------------------------------
+exports.setRepeat = function(repeat) {
+  repeat = Number(repeat);
+  if(!Number.isInteger(repeat) || repeat < 0 || repeat > 2) {
+    return;
+  }
+
+  exports.repeat = repeat;
+  if(!mpvPlayer) {
+    return;
+  }
+
+  // 0 = off, 1 = repeat current track, 2 = repeat the active playlist.
+  mpvPlayer.setProperty('loop-file', repeat === 1 ? 'inf' : 'no');
+  mpvPlayer.setProperty('loop-playlist', repeat === 2 ? 'inf' : 'no');
+};
+
+//---------------------------------------------------------------------------------------
 function sleep(ms) {
   return new Promise((resolve, reject)=>{
 
@@ -290,14 +307,17 @@ exports.active = function() {
 
 //---------------------------------------------------------------------------------------
 exports.play = function() {
-  console.log("mpv play");
   mpvPlayer.resume();
 };
 
 //---------------------------------------------------------------------------------------
 exports.pause = function() {
-  console.log("mpv pause");
   mpvPlayer.pause();
+};
+
+//---------------------------------------------------------------------------------------
+exports.stop = function() {
+  mpvPlayer.stop();
 };
 
 //---------------------------------------------------------------------------------------

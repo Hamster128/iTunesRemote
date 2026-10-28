@@ -305,12 +305,15 @@ io.on('connection', function(socket) {
     if(!iTunesEnabled)
       return;
        
-    itunes.setRepeat(msg.repeat);
+    if(settings.mpv) {
+      mpv.setRepeat(msg.repeat);
+      state.repeat = mpv.repeat;
+      io.sockets.emit('state', state);
+    } else {
+      itunes.setRepeat(msg.repeat);
+    }
     if(settings.hqp) {
       hqp.repeat = msg.repeat;
-    }
-    if(settings.mpv) {
-      mpv.repeat = msg.repeat;
     }
   });
 
@@ -776,9 +779,10 @@ function getState() {
       rsp.sampleRate  = settings.hqp ? hqp.sampleRate : mpv.sampleRate;
       rsp.id_low      = settings.hqp ? hqp.id_low : mpv.id_low;
       rsp.id_high     = settings.hqp ? hqp.id_high : mpv.id_high;
+      rsp.repeat      = settings.hqp ? hqp.repeat : mpv.repeat;
     }
 
-    if(state.state != rsp.state || state.position != rsp.position || newPosSet) {
+    if(state.state != rsp.state || state.position != rsp.position || state.repeat != rsp.repeat || newPosSet) {
       const oldPos = state.position;      
       const oldVol = state.volume;
 
@@ -1042,7 +1046,7 @@ function setVolume(vol, force) {
     }
     io.sockets.emit('state', state);
     io.sockets.emit('volume', vol);
-    execFile('nircmdc.exe', ["setappvolume", "Shairport4wx64.exe", vol / 500], {}, function(err, stdout, stderr) {});
+    //execFile('nircmdc.exe', ["setappvolume", "Shairport4wx64.exe", vol / 500], {}, function(err, stdout, stderr) {});
     return;
   }
 
@@ -1242,7 +1246,12 @@ function checkAudioDevice() {
           });
 
           if(settings.startAlso)
-            exec('start /min "" "'+settings.startAlso+'"', {windowsHide: true}, function(err, stdout, stderr) {
+            exec(`start /min "" "${settings.startAlso.cmd}" ${settings.startAlso.args}`, {windowsHide: true}, function(err, stdout, stderr) {
+              if(err) console.error(`Error starting ${settings.startAlso}:`, err);
+            });
+          if(settings.startAlso2)
+            exec(`start /min "" "${settings.startAlso2.cmd}" ${settings.startAlso2.args}`, {windowsHide: true}, function(err, stdout, stderr) {
+              if(err) console.error(`Error starting ${settings.startAlso2}:`, err);
             });
 
           setTimeout(function(){
@@ -1333,11 +1342,13 @@ function checkAudioDevice() {
       console.log('close iTunes');
 			execFile('nircmdc.exe', ['win', 'close', 'class', 'iTunes'], {}, function(err, stdout, stderr) {});
 
-      if(settings.killAlso)
-        execFile('nircmdc.exe', ['killprocess', settings.killAlso], {}, function(err, stdout, stderr) {});
-
       mpv.quit();
       hqp.quit();
+
+      if(settings.killAlso)
+        execFile('nircmdc.exe', ['killprocess', settings.killAlso], {}, function(err, stdout, stderr) {});
+      if(settings.killAlso2)
+        execFile('nircmdc.exe', ['killprocess', settings.killAlso2], {}, function(err, stdout, stderr) {});
 
       continueAfterMute = false;
       audioDeviceState.state = newState;
@@ -1483,11 +1494,12 @@ function checkShairPort4W() {
     lastREPLAYGAIN_ALBUM_GAIN = undefined;
     
     if(settings.hqp) {
-      hqp.setSampleRate(44100);
+      hqp.setSampleRate(settings.shairportSamplerate);
       state.sampleRate = hqp.sampleRate;
       io.sockets.emit('state', state);
     } else if(settings.mpv) {
-      mpv.setSampleRate(44100);
+      mpv.stop();
+      mpv.setSampleRate(settings.shairportSamplerate);
       state.sampleRate = mpv.sampleRate;
       io.sockets.emit('state', state);
     }
@@ -1526,8 +1538,6 @@ function checkShairPort4W() {
     }
 
     lastAirPlaySongStamp = undefined;
-
-    console.log(`AirPlay stopped`);
 
     io.sockets.emit('track', {name: 0});
   }

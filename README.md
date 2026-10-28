@@ -53,7 +53,7 @@ The `mpvResampleFilter` setting controls the audio resampling filters applied vi
 The default uses the SWR resampler with a Blackman-Nutall window:
 
 ```
-osf=s32:resampler=swr:filter_size=128:resample_cutoff=0.70:filter_type=blackman_nuttall:exact_rational=1
+resampler=swr:filter_size=128:resample_cutoff=0.70:filter_type=blackman_nuttall:exact_rational=1
 ```
 
 Alternative configurations (based on HQPlayer filter characteristics) are documented below. To use one, replace the value of `mpvResampleFilter` in `settings.json`.
@@ -67,7 +67,7 @@ Like HQPlayer Sinc-L. Uses the SOX resampler with strict linear phase and a shar
 - `stopband_begin=100` — Forces an extremely sharp cut-off transition at Nyquist.
 
 ```
-osf=s32:resampler=soxr:precision=32:passband_end=99:stopband_begin=100:phase=50
+resampler=soxr:precision=32:passband_end=99:stopband_begin=100:phase=50
 ```
 
 #### HQPlayer Sinc-Mx (less frequency extension, but more dynamic)
@@ -78,7 +78,7 @@ Like HQPlayer Sinc-Mx. Uses an intermediate phase that shifts energy to post-rin
 - `passband_end=95` & `stopband_begin=105` — Relaxes the transition band slightly to allow a smoother, more natural time-domain decay (less ringing energy overall).
 
 ```
-osf=s32:resampler=soxr:precision=32:passband_end=95:stopband_begin=105:phase=25
+resampler=soxr:precision=32:passband_end=95:stopband_begin=105:phase=25
 ```
 
 #### NOS-like dynamic with SOX (minimum phase)
@@ -91,7 +91,7 @@ NOS-like dynamics using the SOX resampler. Eliminates pre-ringing while maintain
 - `cheby=1` — Enables a Chebyshev windowing function which allows a tiny, ultra-smooth ripple in exchange for an even softer, rounder high-frequency roll-off. This guarantees zero harshness.
 
 ```
-osf=s32:resampler=soxr:precision=32:phase=0:passband_end=73:stopband_begin=125:cheby=1
+resampler=soxr:precision=32:phase=0:passband_end=73:stopband_begin=125:cheby=1
 ```
 
 #### NOS dynamic with SWR (default)
@@ -103,7 +103,7 @@ NOS-like dynamics using the SWR resampler with 64-bit precision and less post-ri
 - `filter_type=blackman_nutall` — Provides exceptional stopband rejection (-98 dB attenuation on first side-lobe) while maintaining a gentle, natural transition slope without high-frequency harshness. (Note: SOX uses Kaiser windowing, which creates sharp, steep cuts.)
 
 ```
-osf=s32:resampler=swr:filter_size=128:resample_cutoff=0.70:filter_type=blackman_nuttall:exact_rational=1
+resampler=swr:filter_size=128:resample_cutoff=0.70:filter_type=blackman_nuttall:exact_rational=1
 ```
 
 ### Volume Control

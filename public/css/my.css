@@ -108,7 +108,6 @@
   .imgArtwork {
     top:170px;
     width:95%;
-    -webkit-filter: contrast(100%) brightness(100%) saturate(100%);
   }
   
   .player_pos_left {
@@ -179,7 +178,6 @@
   
   .imgArtwork {
     top:130px;
-    -webkit-filter: contrast(96%) brightness(102%) saturate(75%);
   }
   
   .player_pos_left {
@@ -267,8 +265,8 @@
 
 .volume-indicator {
   position: relative;
-  left:-250px;
-  top:650px;
+  left:-200px;
+  top:600px;
   width: 150px;
   height: 150px;
   background: black;
@@ -276,7 +274,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 1.0);
   overflow: hidden;
 }
 
