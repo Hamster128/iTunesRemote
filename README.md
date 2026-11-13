@@ -24,8 +24,7 @@ All settings are stored in `settings.json`.
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `startVolume` | number | `30` | Volume (0-100) when starting the player |
-| `startAlso` | string | - | Path to an additional application to start with iTunes |
-| `killAlso` | string | - | Process name to kill when stopping iTunes |
+| `startAlso`, `startAlso2` | object | - | Application to start with iTunes (`cmd` path and optional `args`); its process is stopped when the audio device disappears |
 
 ### Player
 | Key | Type | Default | Description |

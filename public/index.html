@@ -11,7 +11,7 @@
     <link rel="apple-touch-startup-image" href="img/startup.png"   media="(device-width: 320px) and (device-height: 480px) and (-webkit-device-pixel-ratio: 1)">
     <link rel="apple-touch-startup-image" href="img/startupR.png"  media="(device-width: 320px) and (device-height: 480px) and (-webkit-device-pixel-ratio: 2)">
     <link rel="apple-touch-startup-image" href="img/startup5R.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)">
-    <link rel="stylesheet" type="text/css" href="css/my.css?v=2">
+    <link rel="stylesheet" type="text/css" href="css/my.css?v=20">
     <title>Remote Pro</title>
   </head>
   <body class="darkBackground" style="margin:0; position:fixed; overflow:hidden; font-family:Arial;" onMouseUp="endVolume(false); endPosition(false);" onTouchEnd="endVolume(true); endPosition(true);">
@@ -27,7 +27,7 @@
           <table style="width:100%; height:150px; border-bottom:4px solid #555;" cellspacing=0><tr>
             <td style="width:200px; text-align:center; cursor:pointer;" onTouchStart="onPlaylistsBack('Play', true)" onClick="onPlaylistsBack('Play')"><span id="spanNewList" style="font-size:80px;">+</span><img id="imgPlaylistsBack" style="display:none;" src="img/back.png"></td>
             <td style="text-align:center; font-size:60px; font-weight:bold;" id="tdPlaylistsTitle">Playlists</td>
-            <td class="tdNow" style="width:200px; cursor:pointer; text-align:center; font-size:60px; color:#66F;" onTouchStart="onNow(true)" onClick="onNow()">Now</td>
+            <td class="tdNow" style="width:200px; cursor:pointer; text-align:center; font-size:60px; color:#66F;" onTouchStart="onNow(true)" onClick="onNow(false)">Now</td>
           </tr></table>
         </div>
       
@@ -54,7 +54,7 @@
           <table style="width:100%; height:150px; border-bottom:4px solid #555;" cellspacing=0><tr>
             <td style="width:200px;" onTouchStart="onPlaylistsBack('Auto', true)" onClick="onPlaylistsBack('Auto')"><img id="imgAutolistsBack" style="display:none;" src="img/back.png"></td>
             <td style="text-align:center; font-size:60px; font-weight:bold;" id="tdAutolistsTitle">Media</td>
-            <td class="tdNow" style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="onNow(true)" onClick="onNow()">Now</td>
+            <td class="tdNow" style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="onNow(true)" onClick="onNow(false)">Now</td>
           </tr></table>
         </div>
       
@@ -81,7 +81,7 @@
           <table style="width:100%; height:150px; border-bottom:4px solid #555;" cellspacing=0><tr>
             <td style="width:200px;" onTouchStart="onArtistsBack(true)" onClick="onArtistsBack()"><img id="imgArtistsBack" style="visibility:hidden;" src="img/back.png"></td>
             <td style="text-align:center; font-size:60px; font-weight:bold;" id="tdArtistsTitle">Artists</td>
-            <td class="tdNow"  style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="onNow(true)" onClick="onNow()">Now</td>
+            <td class="tdNow"  style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="onNow(true)" onClick="onNow(false)">Now</td>
           </tr></table>
         </div>
       
@@ -113,7 +113,7 @@
           <table style="width:100%; height:150px; border-bottom:4px solid #555;" cellspacing=0><tr>
             <td style="width:200px;"></td>
             <td style="text-align:center; font-size:60px; font-weight:bold;" id="tdSongTitle">Songs</td>
-            <td class="tdNow"  style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="onNow(true)" onClick="onNow()">Now</td>
+            <td class="tdNow"  style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="onNow(true)" onClick="onNow(false)">Now</td>
           </tr></table>
         </div>
       
@@ -135,7 +135,7 @@
           <table style="width:100%; height:150px; border-bottom:4px solid #555;" cellspacing=0><tr>
             <td style="width:200px;" onTouchStart="onAlbumsBack(true)" onClick="onAlbumsBack()"><img id="imgAlbumsBack" style="visibility:hidden;" src="img/back.png"></td>
             <td style="text-align:center; font-size:60px; font-weight:bold;" id="tdAlbumsTitle">Albums</td>
-            <td class="tdNow"  style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="onNow(true)" onClick="onNow()">Now</td>
+            <td class="tdNow"  style="width:200px; text-align:center; font-size:60px; color:#66F;" onTouchStart="onNow(true)" onClick="onNow(false)">Now</td>
           </tr></table>
         </div>
       
@@ -169,20 +169,27 @@
 
     <!-- player page -->
     <div id="divPlayer" class="divPlayerPage pageWidth prevent-select" style="height:100vh; position:absolute;">
-      <div class="landscapeOnly" style="position:absolute; z-index:9;">
+      <div class="landscapeOnly volumeOverlay audio-device-inactive" style="position:absolute; z-index:9;">
         <div class="volume-indicator">
           <svg class="progress-circle" viewBox="0 0 100 100">
             <circle class="bg-circle" cx="50" cy="50" r="45"></circle>
-            <circle class="progress-bar" cx="50" cy="50" r="45"></circle>
+            <circle class="progress-bar volume-progress-bar" cx="50" cy="50" r="45"></circle>
           </svg>
           <div class="dB">-10 dB</div>
           <div class="dsp">DSP</div>
         </div>
+        <div class="volume-indicator time-indicator no-active-title">
+          <svg class="progress-circle" viewBox="0 0 100 100">
+            <circle class="bg-circle" cx="50" cy="50" r="45"></circle>
+            <circle class="progress-bar time-progress-bar" cx="50" cy="50" r="45"></circle>
+          </svg>
+          <div id="timeLeft" class="time-left">-0:00</div>
+        </div>
       </div>
 
-      <div class="landscapeOnly prevent-select" style="z-index:2; position:absolute; left:30px; top:130px">
-        <img id="imgHiRes" src="img/hires.png" style="width:75; height:75px; display:block;">
-      </div> 
+      <div id="hiResBadgeContainer" class="hiResBadgeContainer landscapeOnly prevent-select">
+        <img id="imgHiRes" src="img/hires.png" style="width:75px; height:75px; display:block;">
+      </div>
     
       <div class="artworkWidth" style="height:100%; position:absolute; overflow:hidden; text-align:center;">
         <img id="artwork1" class="imgArtwork" style="position:relative;" src="img/itunes_cover.png">
@@ -465,6 +472,33 @@
       var startupRequests = 0;
       var sourceTrack, sourceList;
 
+      function updateViewportSize() {
+        var height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        if(!height) height = document.documentElement.clientHeight;
+        document.documentElement.style.setProperty('--viewport-height', height + 'px');
+        $('#divPlayer').height(height);
+        window.requestAnimationFrame(alignHiResBadge);
+      }
+
+      function alignHiResBadge() {
+        var artwork = document.getElementById('artwork1');
+        var artworkContainer = artwork && artwork.parentElement;
+        var badge = document.getElementById('hiResBadgeContainer');
+        if(!artwork || !artworkContainer || !badge || window.getComputedStyle(badge).display == 'none')
+          return;
+
+        var containerBounds = artworkContainer.getBoundingClientRect();
+        var artworkTop = parseFloat(window.getComputedStyle(artwork).top) || 0;
+        badge.style.top = (containerBounds.top + artworkTop) + 'px';
+        badge.style.left = (containerBounds.left - badge.offsetWidth - 15) + 'px';
+      }
+
+      updateViewportSize();
+      window.addEventListener('resize', updateViewportSize);
+      window.addEventListener('load', alignHiResBadge);
+      if(window.visualViewport)
+        window.visualViewport.addEventListener('resize', updateViewportSize);
+
       var playlist = {
         "Play": {"id_low":0, "id_high":0},
         "Auto": {"id_low":0, "id_high":0},
@@ -564,10 +598,12 @@
           
         if(secsLeft != actSecsLeft) {
           $('#tdLeft').html('-'+formatTime(secsLeft));
+          $('#timeLeft').html('-'+formatTime(secsLeft));
           actSecsLeft = secsLeft;
         }
     
         $('#divTime').css('width', (position / state.duration * 10)+'%');
+        updateProgressCircle('.time-progress-bar', state.duration > 0 ? position / (state.duration * 10) * 75 : 0);
       }
                   
       function mapValue(value, inMin, inMax, outMin, outMax) {
@@ -582,9 +618,7 @@
         pct = Math.max(pct,  0);
         pct = Math.min(pct, 95);
 
-        const maxOffset = 282.6; // Total circumference
-        const offset = maxOffset - (pct / 100) * maxOffset;
-        $('.progress-bar').css('stroke-dashoffset', offset);
+        updateProgressCircle('.volume-progress-bar', pct);
       }
 
       function updateVolume(volume) {
@@ -595,10 +629,14 @@
         pct = Math.max(pct,  0);
         pct = Math.min(pct, 75);
 
-        const maxOffset = 282.6; // Total circumference
-        const offset = maxOffset - (pct / 100) * maxOffset;
-        $('.progress-bar').css('stroke-dashoffset', offset);
+        updateProgressCircle('.volume-progress-bar', pct);
         }
+
+      function updateProgressCircle(selector, pct) {
+        const circumference = 282.6;
+        const offset = circumference - (pct / 100) * circumference;
+        $(selector).css('stroke-dashoffset', offset);
+      }
 
       function displayVolume(volume) {
         actVolume = volume;
@@ -695,6 +733,11 @@
       });
       
       socket.on('deviceState', function(msg){
+        if(msg.state == 2)
+          $('.volumeOverlay').removeClass('audio-device-inactive');
+        else
+          $('.volumeOverlay').addClass('audio-device-inactive');
+
         if(actAudioDevicePresent == msg.state && 
            actAudioDeviceSource  == msg.source &&
            actAudioDeviceMute    == msg.mute)
@@ -870,6 +913,15 @@
       socket.on('track', function(msg){
 
         track = msg;
+        if(track.name)
+          $('.time-indicator').removeClass('no-active-title');
+        else
+          $('.time-indicator').addClass('no-active-title');
+
+        if(track.kind == 999 || track.kind == 3)
+          $('.time-indicator').addClass('no-track-progress');
+        else
+          $('.time-indicator').removeClass('no-track-progress');
         
         console.log("track", JSON.stringify(track));
 

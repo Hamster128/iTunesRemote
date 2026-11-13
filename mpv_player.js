@@ -1,6 +1,7 @@
 const exec = require('child_process').exec;
 const mpv = require('node-mpv');
 const moment = require('moment')
+const processStart = require('./processStart');
 
 let mpvPlayer;
 
@@ -23,6 +24,7 @@ exports.volume = 100;
 exports.mode = "";
 
 let idleState, changingSampleRate;
+let playerGeneration = 0;
 
 //---------------------------------------------------------------------------------------
 exports.setRepeat = function(repeat) {
@@ -63,6 +65,7 @@ exports.startup = function(itunesP, settingsP) {
 
   itunes = itunesP;
   settings = settingsP;
+  playerGeneration++;
 
   const opts = {
     binary: "mpv.exe",
@@ -71,6 +74,7 @@ exports.startup = function(itunesP, settingsP) {
   };
   
   mpvPlayer = new mpv(opts); 
+  processStart.track(mpvPlayer.mpvPlayer);
 
   mpvPlayer.observeProperty("core-idle", 20);
   mpvPlayer.observeProperty("metadata/by-key/REPLAYGAIN_TRACK_GAIN", 21);
@@ -191,13 +195,30 @@ exports.updateSettings = function(overrides) {
 
 //---------------------------------------------------------------------------------------
 exports.quit = function() {
+  exports.shutdown();
+}
+
+//---------------------------------------------------------------------------------------
+exports.shutdown = function() {
   if(!mpvPlayer)
     return;
 
-  console.log("mpv quit");
+  console.log("mpv shutdown");
 
+  playerGeneration++;
   mpvPlayer.quit();
   mpvPlayer = null;
+  playlist = [];
+  playIdx = 0;
+  exports.state = false;
+  exports.position = 0;
+  exports.duration = 0;
+  exports.id_low = 0;
+  exports.id_high = 0;
+  exports.mediaTitle = null;
+  changingSampleRate = false;
+  wantedSampleRate = 0;
+  sampleRateCallbacks.splice(0).forEach(done => done());
 }
 
 //---------------------------------------------------------------------------------------
@@ -238,21 +259,33 @@ function checkSampleRateOfDevice(idx) {
 
 //---------------------------------------------------------------------------------------
 let wantedSampleRate = 0;
+let sampleRateCallbacks = [];
 
-exports.setSampleRate = function(wantedRate, force) {
+exports.setSampleRate = function(wantedRate, force, callback) {
 
-  if(!wantedRate || (wantedRate == exports.sampleRate && !force)) {
+  if(!wantedRate) {
+    if(callback) callback();
     return false;
   }
 
   if(changingSampleRate) {
-    wantedSampleRate = wantedRate;
-    return;  
+    if(wantedRate != exports.sampleRate) {
+      wantedSampleRate = wantedRate;
+    }
+    if(callback) sampleRateCallbacks.push(callback);
+    return;
   }
 
+  if(wantedRate == exports.sampleRate && !force) {
+    if(callback) callback();
+    return false;
+  }
+
+  if(callback) sampleRateCallbacks.push(callback);
   mpvPlayer.volume(0);
   changingSampleRate = true;
   exports.sampleRate = wantedRate;
+  const generation = playerGeneration;
 
   console.log("mpv setting sample rate", wantedRate);
 
@@ -260,6 +293,11 @@ exports.setSampleRate = function(wantedRate, force) {
     console.log("mpv setting sample rate wait", exports.sampleRate, stdout.toString(), err);
     await sleep(settings.mpvSamplerateWaitMS);
     console.log("mpv setting sample rate done", exports.sampleRate);
+
+    if(generation !== playerGeneration || !mpvPlayer) {
+      sampleRateCallbacks.splice(0).forEach(done => done());
+      return;
+    }
 
     mpvPlayer.command("af", ["set", "lavfi=[aresample=" + exports.sampleRate + ":" + settings.mpvResampleFilter + "]"]);
 
@@ -270,8 +308,11 @@ exports.setSampleRate = function(wantedRate, force) {
     changingSampleRate = false;
 
     if(wantedSampleRate) {
-      exports.setSampleRate(wantedSampleRate);
+      const nextWantedRate = wantedSampleRate;
       wantedSampleRate = 0;    
+      exports.setSampleRate(nextWantedRate);
+    } else {
+      sampleRateCallbacks.splice(0).forEach(done => done());
     }
   });
 
@@ -306,6 +347,17 @@ exports.active = function() {
 };
 
 //---------------------------------------------------------------------------------------
+exports.clearPlaylist = function() {
+  if(!mpvPlayer) {
+    return;
+  }
+
+  mpvPlayer.clearPlaylist();
+  playlist = [];
+  playIdx = 0;
+};
+
+//---------------------------------------------------------------------------------------
 exports.play = function() {
   mpvPlayer.resume();
 };
@@ -317,7 +369,12 @@ exports.pause = function() {
 
 //---------------------------------------------------------------------------------------
 exports.stop = function() {
-  mpvPlayer.stop();
+  if(!mpvPlayer) {
+    return;
+  }
+
+  mpvPlayer.pause();
+  exports.clearPlaylist();
 };
 
 //---------------------------------------------------------------------------------------

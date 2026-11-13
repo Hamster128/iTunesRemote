@@ -841,6 +841,8 @@ async function processCurrentTrack(rsp){
             rsp.mediaTitle != track.mediaTitle || 
             rsp.artist != track.artist || 
             rsp.album != track.album || 
+            rsp.playedCount != track.playedCount ||
+            rsp.playedDate != track.playedDate ||
             rsp.enabled != track.enabled)) {
     track = rsp;
 
@@ -875,7 +877,7 @@ async function processCurrentTrack(rsp){
 
   if((settings.mpv || settings.hqp) && settings.vstVolumeControl && rsp) {
 
-    const currentGain = (settings.hqp ? hqp.mode : mpv.mode) == "album" ? rsp.REPLAYGAIN_ALBUM_GAIN : rsp.REPLAYGAIN_TRACK_GAIN;
+    const currentGain = rsp.REPLAYGAIN_ALBUM_GAIN;
 
     if(currentGain != lastREPLAYGAIN_GAIN) {
 
@@ -910,19 +912,10 @@ async function processCurrentTrack(rsp){
       }
     }
 
-    if((settings.hqp ? hqp.mode : mpv.mode) == "album") {
-      if("REPLAYGAIN_ALBUM_GAIN" in rsp) {
-        if(rsp.REPLAYGAIN_ALBUM_GAIN !== lastREPLAYGAIN_GAIN) { 
-          console.log(`lastREPLAYGAIN_GAIN ${lastREPLAYGAIN_GAIN} -> ${rsp.REPLAYGAIN_ALBUM_GAIN} mode=${settings.hqp ? hqp.mode : mpv.mode}`);
-          lastREPLAYGAIN_GAIN = rsp.REPLAYGAIN_ALBUM_GAIN;
-        }
-      }
-    } else {
-      if("REPLAYGAIN_TRACK_GAIN" in rsp) {
-        if(rsp.REPLAYGAIN_TRACK_GAIN !== lastREPLAYGAIN_GAIN) { 
-          console.log(`lastREPLAYGAIN_GAIN ${lastREPLAYGAIN_GAIN} -> ${rsp.REPLAYGAIN_TRACK_GAIN} mode=${settings.hqp ? hqp.mode : mpv.mode}`);
-          lastREPLAYGAIN_GAIN = rsp.REPLAYGAIN_TRACK_GAIN;
-        }
+    if("REPLAYGAIN_ALBUM_GAIN" in rsp) {
+      if(rsp.REPLAYGAIN_ALBUM_GAIN !== lastREPLAYGAIN_GAIN) { 
+        console.log(`lastREPLAYGAIN_GAIN ${lastREPLAYGAIN_GAIN} -> ${rsp.REPLAYGAIN_ALBUM_GAIN} mode=${settings.hqp ? hqp.mode : mpv.mode}`);
+        lastREPLAYGAIN_GAIN = rsp.REPLAYGAIN_ALBUM_GAIN;
       }
     }
   }
@@ -1446,7 +1439,21 @@ function checkComputerWasSleeping() {
 }
 
 
-function checkShairPort4W() {
+function setSampleRate(wantedRate) {
+
+  if(wantedRate == state.sampleRate) {
+    return;
+  }
+
+  console.log("setting sample rate", wantedRate);
+
+  exec(`SoundVolumeView.exe /SetDefaultFormat "${settings.wait4AudioDevice}" ${settings.mpvBitsPerSample} ${wantedRate}`, {encoding: 'utf16'}, async function(err, stdout, stderr) {
+    console.log("setting sample rate done", wantedRate);
+    state.sampleRate = wantedRate;
+  });      
+}
+
+async function checkShairPort4W() {
 
 
   try {
@@ -1494,13 +1501,11 @@ function checkShairPort4W() {
     lastREPLAYGAIN_ALBUM_GAIN = undefined;
     
     if(settings.hqp) {
-      hqp.setSampleRate(settings.shairportSamplerate);
-      state.sampleRate = hqp.sampleRate;
       io.sockets.emit('state', state);
     } else if(settings.mpv) {
       mpv.stop();
-      mpv.setSampleRate(settings.shairportSamplerate);
-      state.sampleRate = mpv.sampleRate;
+      if(settings.shairportSamplerate)
+        setSampleRate(settings.shairportSamplerate);
       io.sockets.emit('state', state);
     }
 
@@ -1538,6 +1543,9 @@ function checkShairPort4W() {
     }
 
     lastAirPlaySongStamp = undefined;
+
+    if(settings.mpv && mpv.sampleRate)
+      setSampleRate(mpv.sampleRate);
 
     io.sockets.emit('track', {name: 0});
   }

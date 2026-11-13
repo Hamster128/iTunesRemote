@@ -148,8 +148,17 @@
     width:700px;
   }
 
+  .hiResBadgeContainer {
+    position:fixed;
+    z-index:2;
+  }
+
   .imgArtwork {
-    width:90%;
+    width:auto;
+    max-width:95%;
+    height:calc(var(--viewport-height, 100vh) - 150px);
+    max-height:calc(var(--viewport-height, 100vh) - 150px);
+    object-fit:contain;
   }
     
   .vertOnly {
@@ -158,13 +167,29 @@
   
   .landscapeOnly {
   }
+
+  .volumeOverlay {
+    inset:0;
+  }
+
+  .volumeOverlay.audio-device-inactive {
+    display:none;
+  }
+
+  .time-indicator.no-active-title {
+    display:none;
+  }
+
+  .time-indicator.no-track-progress {
+    display:none;
+  }
   
   .track_title {
-    font-size: 35px;
+    font-size: 24.5px;
   }
  
   .artist_album_title {
-    font-size: 30px;
+    font-size: 21px;
   }
   
   .player_position_time {
@@ -177,7 +202,7 @@
   }
   
   .imgArtwork {
-    top:130px;
+    top:110px;
   }
   
   .player_pos_left {
@@ -193,10 +218,17 @@
   
   .trPlayerPosition {
     height:80px;
+    display:none;
   }
   
   .progressBar {
     height:20px;
+  }
+}
+
+@supports (height: 100dvh) {
+  #divPlayer {
+    height:100dvh !important;
   }
 }
 
@@ -264,9 +296,10 @@
 }
 
 .volume-indicator {
-  position: relative;
+  position: absolute;
   left:-200px;
-  top:600px;
+  top:auto;
+  bottom:80px;
   width: 150px;
   height: 150px;
   background: black;
@@ -276,6 +309,24 @@
   align-items: center;
   box-shadow: 0 0 15px rgba(0, 0, 0, 1.0);
   overflow: hidden;
+}
+
+.time-indicator {
+  left:auto;
+  right:-200px;
+}
+
+.time-left {
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transform:translateY(4px);
+  color:#AAA;
+  font-size:1.9em;
+  text-align:center;
+  white-space:nowrap;
 }
 
 .dB {

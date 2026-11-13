@@ -88,8 +88,7 @@ The runtime also supports:
 - `vstVolumeControl` (`bool`): Volume via `http://127.0.0.1:8088/volume?value=<0..100>`.
 
 ## 5.4 Process Automation
-- `startAlso` (`path`): Additional process to start with audio lifecycle.
-- `killAlso` (`process name`): Additional process to stop when audio device disappears.
+- `startAlso`, `startAlso2` (`{ cmd, args }`): Additional processes started with the audio lifecycle and stopped by their tracked process IDs when the audio device disappears.
 
 ## 5.5 Devialet
 - `devialet` (`bool`)
