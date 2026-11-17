@@ -159,6 +159,7 @@
     height:calc(var(--viewport-height, 100vh) - 150px);
     max-height:calc(var(--viewport-height, 100vh) - 150px);
     object-fit:contain;
+    object-position:top center;
   }
     
   .vertOnly {
@@ -185,7 +186,7 @@
   }
   
   .track_title {
-    font-size: 24.5px;
+    font-size: 29.5px;
   }
  
   .artist_album_title {
@@ -316,17 +317,37 @@
   right:-200px;
 }
 
-.time-left {
+.time-labels {
   position:absolute;
   inset:0;
   display:flex;
+  flex-direction:column;
   align-items:center;
   justify-content:center;
   transform:translateY(4px);
   color:#AAA;
-  font-size:1.9em;
+  font-size:1.65em;
   text-align:center;
   white-space:nowrap;
+  line-height:1.2;
+}
+
+.time-line {
+  display:grid;
+  grid-template-columns:1.65em 0.45em 1.65em;
+  align-items:center;
+}
+
+.time-minutes {
+  text-align:right;
+}
+
+.time-colon {
+  text-align:center;
+}
+
+.time-seconds {
+  text-align:left;
 }
 
 .dB {

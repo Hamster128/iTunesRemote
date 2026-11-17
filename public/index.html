@@ -11,7 +11,7 @@
     <link rel="apple-touch-startup-image" href="img/startup.png"   media="(device-width: 320px) and (device-height: 480px) and (-webkit-device-pixel-ratio: 1)">
     <link rel="apple-touch-startup-image" href="img/startupR.png"  media="(device-width: 320px) and (device-height: 480px) and (-webkit-device-pixel-ratio: 2)">
     <link rel="apple-touch-startup-image" href="img/startup5R.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)">
-    <link rel="stylesheet" type="text/css" href="css/my.css?v=20">
+    <link rel="stylesheet" type="text/css" href="css/my.css?v=30">
     <title>Remote Pro</title>
   </head>
   <body class="darkBackground" style="margin:0; position:fixed; overflow:hidden; font-family:Arial;" onMouseUp="endVolume(false); endPosition(false);" onTouchEnd="endVolume(true); endPosition(true);">
@@ -183,7 +183,10 @@
             <circle class="bg-circle" cx="50" cy="50" r="45"></circle>
             <circle class="progress-bar time-progress-bar" cx="50" cy="50" r="45"></circle>
           </svg>
-          <div id="timeLeft" class="time-left">-0:00</div>
+          <div class="time-labels">
+            <div id="timeElapsed" class="time-line"><span class="time-minutes">0</span><span class="time-colon">:</span><span class="time-seconds">00</span></div>
+            <div id="timeLeft" class="time-line"><span class="time-minutes">-0</span><span class="time-colon">:</span><span class="time-seconds">00</span></div>
+          </div>
         </div>
       </div>
 
@@ -481,21 +484,38 @@
       }
 
       function alignHiResBadge() {
-        var artwork = document.getElementById('artwork1');
-        var artworkContainer = artwork && artwork.parentElement;
+        var artworks = document.querySelectorAll('.imgArtwork');
+        var artwork = null;
         var badge = document.getElementById('hiResBadgeContainer');
-        if(!artwork || !artworkContainer || !badge || window.getComputedStyle(badge).display == 'none')
+        if(!badge || window.getComputedStyle(badge).display == 'none')
           return;
 
-        var containerBounds = artworkContainer.getBoundingClientRect();
-        var artworkTop = parseFloat(window.getComputedStyle(artwork).top) || 0;
-        badge.style.top = (containerBounds.top + artworkTop) + 'px';
-        badge.style.left = (containerBounds.left - badge.offsetWidth - 15) + 'px';
+        for(var i = 0; i < artworks.length; i++) {
+          if(window.getComputedStyle(artworks[i]).display != 'none' && artworks[i].getBoundingClientRect().width > 0) {
+            artwork = artworks[i];
+            break;
+          }
+        }
+        if(!artwork)
+          return;
+
+        var artworkBounds = artwork.getBoundingClientRect();
+        badge.style.top = artworkBounds.top + 'px';
+        badge.style.left = (artworkBounds.left - badge.offsetWidth - 20) + 'px';
       }
 
       updateViewportSize();
       window.addEventListener('resize', updateViewportSize);
       window.addEventListener('load', alignHiResBadge);
+      document.querySelectorAll('.imgArtwork').forEach(function(artwork) {
+        artwork.addEventListener('load', alignHiResBadge);
+      });
+      if(window.ResizeObserver) {
+        var hiResBadgeResizeObserver = new ResizeObserver(alignHiResBadge);
+        document.querySelectorAll('.imgArtwork, .artworkWidth').forEach(function(element) {
+          hiResBadgeResizeObserver.observe(element);
+        });
+      }
       if(window.visualViewport)
         window.visualViewport.addEventListener('resize', updateViewportSize);
 
@@ -555,6 +575,15 @@
         return(text);
       }
 
+      function formatCircleTime(secs, showMinus) {
+        var minutes = Math.floor(secs / 60);
+        var seconds = Math.floor(secs % 60);
+        var secondsText = seconds < 10 ? '0' + seconds : '' + seconds;
+        return '<span class="time-minutes">' + (showMinus ? '-' : '') + minutes + '</span>' +
+          '<span class="time-colon">:</span>' +
+          '<span class="time-seconds">' + secondsText + '</span>';
+      }
+
       function storeScrollPos(div) {
 
         if(onScrolledTimeouts[div.id]) {
@@ -586,6 +615,7 @@
 
 		    if(secsAt != actSecsAt) {
 	        $('#tdAt').html(formatTime(secsAt));
+	        $('#timeElapsed').html(formatCircleTime(secsAt, false));
           actSecsAt = secsAt;
 		    }
         
@@ -598,7 +628,7 @@
           
         if(secsLeft != actSecsLeft) {
           $('#tdLeft').html('-'+formatTime(secsLeft));
-          $('#timeLeft').html('-'+formatTime(secsLeft));
+          $('#timeLeft').html(formatCircleTime(secsLeft, true));
           actSecsLeft = secsLeft;
         }
     
